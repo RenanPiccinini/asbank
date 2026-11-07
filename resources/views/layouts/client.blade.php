@@ -123,3 +123,4 @@
     @stack('scripts')
 </body>
 </html>
+

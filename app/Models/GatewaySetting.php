@@ -29,3 +29,4 @@ class GatewaySetting extends Model
         static::updateOrCreate(['key' => $key], ['value' => $value]);
     }
 }
+

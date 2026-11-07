@@ -108,3 +108,4 @@ class Loan extends Model
         };
     }
 }
+

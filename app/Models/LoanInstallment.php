@@ -74,3 +74,4 @@ class LoanInstallment extends Model
         return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
     }
 }
+

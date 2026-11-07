@@ -84,3 +84,4 @@ class FinancialTransaction extends Model
         };
     }
 }
+
