@@ -11,7 +11,7 @@
     </div>
 
     <!-- Main Payment Card -->
-    <div class="p-8 rounded-3xl bg-[#0A1324] border border-amber-500/30 text-center space-y-6 shadow-2xl relative overflow-hidden">
+    <div id="paymentBox" class="p-8 rounded-3xl bg-[#0A1324] border border-amber-500/30 text-center space-y-6 shadow-2xl relative overflow-hidden">
         
         <!-- Header -->
         <div>
@@ -35,6 +35,15 @@
             </div>
         </div>
 
+        <!-- Live Status Pill -->
+        <div class="flex items-center justify-center gap-2 text-xs font-semibold text-slate-400">
+            <span class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+            </span>
+            <span>Aguardando pagamento no banco... (baixa automática)</span>
+        </div>
+
         <!-- QR Code Image -->
         <div class="p-4 rounded-2xl bg-white mx-auto inline-block shadow-2xl border-4 border-amber-400/20">
             @if($installment->pix_qr_code_base64)
@@ -50,7 +59,7 @@
             <div class="relative">
                 <textarea id="pixCodeInput" readonly rows="2" class="w-full px-3 py-2 text-xs font-mono bg-[#070D18] border border-[#162540] rounded-xl text-slate-300 resize-none">{{ $installment->pix_qr_code }}</textarea>
             </div>
-            <button type="button" onclick="copyToClipboard(document.getElementById('pixCodeInput').value, 'Código PIX Copia e Cola copiado!')" 
+            <button type="button" onclick="copyToClipboard(document.getElementById('pixCodeInput').value, 'Código PIX Copia e Cola copiado com sucesso!')" 
                     class="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-amber-900/30 transition-all">
                 <i data-lucide="copy" class="w-4 h-4"></i> Copiar Código PIX
             </button>
@@ -75,6 +84,66 @@
 
     </div>
 
+    <!-- Success Container (shown via live polling when paid) -->
+    <div id="successBox" class="p-8 rounded-3xl bg-[#0A1324] border border-emerald-500/40 text-center space-y-6 shadow-2xl hidden">
+        <div class="w-20 h-20 rounded-full bg-emerald-500/20 border-2 border-emerald-500 text-emerald-400 mx-auto flex items-center justify-center shadow-lg">
+            <i data-lucide="check" class="w-10 h-10"></i>
+        </div>
+
+        <div>
+            <h2 class="text-2xl font-black text-white">Pagamento Confirmado!</h2>
+            <p class="text-xs text-emerald-400 mt-1 font-semibold">
+                Sua parcela #{{ $installment->installment_number }} foi devidamente liquidada via PIX.
+            </p>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-[#070D18] border border-[#162540] max-w-md mx-auto text-xs text-slate-300 space-y-2">
+            <div class="flex justify-between">
+                <span class="text-slate-400">Valor Pago:</span>
+                <span class="font-bold text-white">R$ {{ number_format($installment->amount, 2, ',', '.') }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-slate-400">Data/Hora:</span>
+                <span id="paidAtTime" class="font-mono text-slate-200">Agora</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-slate-400">Identificador E2E:</span>
+                <span id="paidE2eCode" class="font-mono text-slate-400 truncate max-w-[200px]">{{ $installment->pix_e2e ?: 'E2E-MISTICPAY-PIX' }}</span>
+            </div>
+        </div>
+
+        <div>
+            <a href="{{ route('client.loans.show', $installment->loan) }}" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold text-xs uppercase tracking-wider shadow-lg shadow-emerald-900/30 transition-all">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar ao Meu Contrato
+            </a>
+        </div>
+    </div>
+
 </div>
 @endsection
 
+@push('scripts')
+<script>
+    const checkStatusUrl = "{{ route('client.loans.installment-status', $installment) }}";
+    let pollInterval = setInterval(() => {
+        fetch(checkStatusUrl)
+            .then(res => res.json())
+            .then(data => {
+                if (data.is_paid) {
+                    clearInterval(pollInterval);
+                    document.getElementById('paymentBox').classList.add('hidden');
+                    document.getElementById('successBox').classList.remove('hidden');
+                    if (data.paid_at) {
+                        document.getElementById('paidAtTime').innerText = data.paid_at;
+                    }
+                    if (data.e2e) {
+                        document.getElementById('paidE2eCode').innerText = data.e2e;
+                    }
+                    showToast('🎉 Pagamento PIX confirmado com sucesso!');
+                    lucide.createIcons();
+                }
+            })
+            .catch(err => console.log('Checking status...'));
+    }, 3000);
+</script>
+@endpush

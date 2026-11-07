@@ -85,6 +85,7 @@ Route::middleware(['auth', 'client'])->prefix('cliente')->name('client.')->group
     Route::get('/emprestimos/{loan}', [ClientPortalController::class, 'loanDetails'])->name('loans.show');
     Route::get('/emprestimos/{loan}/contrato', [ClientPortalController::class, 'contract'])->name('loans.contract');
     Route::get('/parcelas/{installment}/pagar', [ClientPortalController::class, 'payInstallment'])->name('loans.pay');
+    Route::get('/parcelas/{installment}/status', [ClientPortalController::class, 'checkInstallmentStatus'])->name('loans.installment-status');
 
     Route::get('/extrato', [ClientPortalController::class, 'statement'])->name('statement');
 });
