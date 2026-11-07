@@ -62,6 +62,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('loans/{loan}/enviar-pix', [LoanController::class, 'sendPixDisbursement'])->name('loans.send-pix');
     Route::post('installments/{installment}/gerar-pix', [LoanController::class, 'generateInstallmentPix'])->name('loans.generate-installment-pix');
     Route::post('installments/{installment}/marcar-pago', [LoanController::class, 'markInstallmentPaid'])->name('loans.mark-installment-paid');
+    Route::post('installments/{installment}/simular-webhook', [LoanController::class, 'simulateWebhookPayment'])->name('loans.simulate-webhook');
     Route::get('loans/{loan}/contrato-impressao', [LoanController::class, 'contractPrint'])->name('loans.contract-print');
 
     // Extrato (envios e recebimentos)

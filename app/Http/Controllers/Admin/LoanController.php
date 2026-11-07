@@ -332,6 +332,35 @@ class LoanController extends Controller
     }
 
     /**
+     * Simular Webhook de Recebimento PIX (Cash-In) vindo da MisticPay
+     */
+    public function simulateWebhookPayment(LoanInstallment $installment, MisticPayService $misticPay)
+    {
+        $installment->load('loan.client');
+
+        $txId = $installment->pix_transaction_id ?: ('mp_ci_sim_' . date('YmdHis') . '_' . rand(100, 999));
+        if (empty($installment->pix_transaction_id)) {
+            $installment->update(['pix_transaction_id' => $txId]);
+        }
+
+        $payload = [
+            'transactionId' => $txId,
+            'transactionType' => 'DEPOSITO',
+            'transactionMethod' => 'PIX',
+            'status' => 'COMPLETO',
+            'value' => (float) $installment->amount,
+            'fee' => 1.50,
+            'e2e' => 'E' . date('YmdHis') . rand(10000000, 99999999) . 'ASBANK',
+            'clientName' => $installment->loan->client->name,
+            'clientDocument' => $installment->loan->client->document,
+        ];
+
+        $misticPay->handleWebhook($payload);
+
+        return back()->with('success', "Webhook de liquidação PIX simulado com sucesso! Parcela #{$installment->installment_number} quitada.");
+    }
+
+    /**
      * Visualização e Impressão do Contrato Digital com Análise
      */
     public function contractPrint(Loan $loan)

@@ -132,6 +132,21 @@ class ClientPortalController extends Controller
         return view('client.loans.pay-installment', compact('client', 'installment'));
     }
 
+    public function checkInstallmentStatus(LoanInstallment $installment)
+    {
+        $client = $this->getAuthenticatedClient();
+        if (!$client || $installment->loan->client_id !== $client->id) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        return response()->json([
+            'status' => $installment->status,
+            'is_paid' => $installment->status === 'pago',
+            'paid_at' => $installment->paid_at?->format('d/m/Y H:i:s'),
+            'e2e' => $installment->pix_e2e,
+        ]);
+    }
+
     public function statement()
     {
         $client = $this->getAuthenticatedClient();
