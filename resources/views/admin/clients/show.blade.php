@@ -144,7 +144,7 @@
                                     <i data-lucide="check" class="w-3.5 h-3.5"></i> PIX Enviado
                                 </span>
                             @else
-                                <form method="POST" action="{{ route('admin.loans.send-pix', $loan) }}" onsubmit='return confirm("Confirma o envio do PIX de R$ {{ number_format($loan->amount, 2, ',', '.') }}?");'>
+                                <form method="POST" action="{{ route('admin.loans.send-pix', $loan) }}" onsubmit='return confirmAction(event, "Enviar PIX de Desembolso", "Confirma o envio do PIX de R$ {{ number_format($loan->amount, 2, ',', '.') }} para a chave de {{ $loan->client->name }}? O valor será liberado via MisticPay.", "zap", "amber");'>
                                     @csrf
                                     <button type="submit" class="px-3 py-1 rounded-lg bg-amber-500 text-slate-950 font-bold text-xs hover:bg-amber-400 transition-colors inline-flex items-center gap-1 shadow">
                                         <i data-lucide="send" class="w-3.5 h-3.5"></i> Enviar PIX

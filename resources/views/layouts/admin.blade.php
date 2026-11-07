@@ -204,6 +204,40 @@
         </footer>
     </div>
 
+    <!-- Global ASBANK Confirmation Modal -->
+    <div id="asbankConfirmModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden transition-opacity duration-200">
+        <div class="bg-[#0A1324] border border-[#162540] rounded-3xl max-w-md w-full p-6 text-center shadow-2xl relative transform transition-all duration-200 scale-95" id="asbankConfirmBox">
+            <button type="button" onclick="closeConfirmModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <!-- Dynamic Icon Container -->
+            <div id="confirmIconContainer" class="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center mb-4 bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                <i id="confirmIcon" data-lucide="help-circle" class="w-8 h-8"></i>
+            </div>
+
+            <h3 id="confirmTitle" class="text-lg font-bold text-white mb-2">Confirmação</h3>
+            <p id="confirmMessage" class="text-xs text-slate-300 leading-relaxed mb-6"></p>
+
+            <div class="flex items-center gap-3">
+                <button type="button" onclick="closeConfirmModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs transition-colors">
+                    Cancelar
+                </button>
+                <button type="button" id="confirmSubmitBtn" onclick="executeConfirmAction()" class="flex-1 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider text-slate-950 bg-amber-500 hover:bg-amber-400 shadow-lg shadow-amber-900/30 transition-all">
+                    Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global ASBANK Toast Notification -->
+    <div id="asbankToast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-3 px-4 py-3 rounded-2xl bg-[#0D1B2A] border border-emerald-500/30 text-white shadow-2xl pointer-events-none">
+        <div id="toastIconWrapper" class="p-1.5 rounded-xl bg-emerald-500/20 text-emerald-400">
+            <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+        </div>
+        <span id="toastMessage" class="text-xs font-semibold text-emerald-300">Ação realizada com sucesso!</span>
+    </div>
+
     <!-- Scripts -->
     <script>
         lucide.createIcons();
@@ -215,11 +249,94 @@
             backdrop.classList.toggle('hidden');
         }
 
+        let pendingFormToSubmit = null;
+
+        function confirmAction(event, title, message, icon = 'alert-triangle', colorScheme = 'amber') {
+            event.preventDefault();
+            pendingFormToSubmit = event.target.closest('form');
+
+            document.getElementById('confirmTitle').innerText = title;
+            document.getElementById('confirmMessage').innerText = message;
+
+            const iconContainer = document.getElementById('confirmIconContainer');
+            const submitBtn = document.getElementById('confirmSubmitBtn');
+
+            if (colorScheme === 'rose') {
+                iconContainer.className = 'w-16 h-16 rounded-2xl mx-auto flex items-center justify-center mb-4 bg-rose-500/10 text-rose-400 border border-rose-500/20';
+                submitBtn.className = 'flex-1 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider text-white bg-rose-600 hover:bg-rose-500 shadow-lg shadow-rose-900/30 transition-all';
+                submitBtn.innerText = 'Excluir';
+            } else if (colorScheme === 'emerald') {
+                iconContainer.className = 'w-16 h-16 rounded-2xl mx-auto flex items-center justify-center mb-4 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+                submitBtn.className = 'flex-1 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider text-slate-950 bg-emerald-400 hover:bg-emerald-300 shadow-lg shadow-emerald-900/30 transition-all';
+                submitBtn.innerText = 'Confirmar';
+            } else {
+                iconContainer.className = 'w-16 h-16 rounded-2xl mx-auto flex items-center justify-center mb-4 bg-amber-500/10 text-amber-400 border border-amber-500/20';
+                submitBtn.className = 'flex-1 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider text-slate-950 bg-amber-500 hover:bg-amber-400 shadow-lg shadow-amber-900/30 transition-all';
+                submitBtn.innerText = 'Confirmar Envio';
+            }
+
+            const iconEl = document.getElementById('confirmIcon');
+            iconEl.setAttribute('data-lucide', icon);
+            lucide.createIcons();
+
+            const modal = document.getElementById('asbankConfirmModal');
+            const box = document.getElementById('asbankConfirmBox');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                box.classList.remove('scale-95');
+                box.classList.add('scale-100');
+            }, 10);
+
+            return false;
+        }
+
+        function closeConfirmModal() {
+            const modal = document.getElementById('asbankConfirmModal');
+            const box = document.getElementById('asbankConfirmBox');
+            box.classList.remove('scale-100');
+            box.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                pendingFormToSubmit = null;
+            }, 150);
+        }
+
+        function executeConfirmAction() {
+            if (pendingFormToSubmit) {
+                const form = pendingFormToSubmit;
+                closeConfirmModal();
+                form.submit();
+            }
+        }
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('asbankToast');
+            const textEl = document.getElementById('toastMessage');
+            const iconWrapper = document.getElementById('toastIconWrapper');
+
+            textEl.innerText = message;
+            if (isError) {
+                toast.className = 'fixed bottom-6 right-6 z-50 transform translate-y-0 opacity-100 transition-all duration-300 flex items-center gap-3 px-4 py-3 rounded-2xl bg-[#1F1318] border border-rose-500/40 text-white shadow-2xl pointer-events-auto';
+                iconWrapper.className = 'p-1.5 rounded-xl bg-rose-500/20 text-rose-400';
+                textEl.className = 'text-xs font-semibold text-rose-300';
+            } else {
+                toast.className = 'fixed bottom-6 right-6 z-50 transform translate-y-0 opacity-100 transition-all duration-300 flex items-center gap-3 px-4 py-3 rounded-2xl bg-[#0D1B2A] border border-emerald-500/40 text-white shadow-2xl pointer-events-auto';
+                iconWrapper.className = 'p-1.5 rounded-xl bg-emerald-500/20 text-emerald-400';
+                textEl.className = 'text-xs font-semibold text-emerald-300';
+            }
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+                toast.classList.remove('translate-y-0', 'opacity-100');
+            }, 3000);
+        }
+
         function copyToClipboard(text, message = 'Copiado para a área de transferência!') {
             navigator.clipboard.writeText(text).then(() => {
-                alert(message);
+                showToast(message);
             }).catch(err => {
                 console.error('Falha ao copiar:', err);
+                showToast('Falha ao copiar código', true);
             });
         }
     </script>

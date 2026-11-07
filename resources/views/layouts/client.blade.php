@@ -110,13 +110,45 @@
         </div>
     </footer>
 
+    <!-- Global ASBANK Toast Notification -->
+    <div id="asbankToast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-3 px-4 py-3 rounded-2xl bg-[#0D1B2A] border border-emerald-500/40 text-white shadow-2xl pointer-events-none">
+        <div id="toastIconWrapper" class="p-1.5 rounded-xl bg-emerald-500/20 text-emerald-400">
+            <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+        </div>
+        <span id="toastMessage" class="text-xs font-semibold text-emerald-300">Ação realizada com sucesso!</span>
+    </div>
+
     <script>
         lucide.createIcons();
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('asbankToast');
+            const textEl = document.getElementById('toastMessage');
+            const iconWrapper = document.getElementById('toastIconWrapper');
+
+            textEl.innerText = message;
+            if (isError) {
+                toast.className = 'fixed bottom-6 right-6 z-50 transform translate-y-0 opacity-100 transition-all duration-300 flex items-center gap-3 px-4 py-3 rounded-2xl bg-[#1F1318] border border-rose-500/40 text-white shadow-2xl pointer-events-auto';
+                iconWrapper.className = 'p-1.5 rounded-xl bg-rose-500/20 text-rose-400';
+                textEl.className = 'text-xs font-semibold text-rose-300';
+            } else {
+                toast.className = 'fixed bottom-6 right-6 z-50 transform translate-y-0 opacity-100 transition-all duration-300 flex items-center gap-3 px-4 py-3 rounded-2xl bg-[#0D1B2A] border border-emerald-500/40 text-white shadow-2xl pointer-events-auto';
+                iconWrapper.className = 'p-1.5 rounded-xl bg-emerald-500/20 text-emerald-400';
+                textEl.className = 'text-xs font-semibold text-emerald-300';
+            }
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+                toast.classList.remove('translate-y-0', 'opacity-100');
+            }, 3000);
+        }
+
         function copyToClipboard(text, message = 'Código PIX copiado com sucesso!') {
             navigator.clipboard.writeText(text).then(() => {
-                alert(message);
+                showToast(message);
             }).catch(err => {
                 console.error('Falha ao copiar:', err);
+                showToast('Falha ao copiar código', true);
             });
         }
     </script>

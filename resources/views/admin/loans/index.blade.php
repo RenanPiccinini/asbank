@@ -97,7 +97,7 @@
                                     <i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> Processando
                                 </span>
                             @else
-                                <form method="POST" action="{{ route('admin.loans.send-pix', $loan) }}" onsubmit='return confirm("Confirma o envio do PIX de R$ {{ number_format($loan->amount, 2, ',', '.') }} para a chave de {{ $loan->client->name }}?");'>
+                                <form method="POST" action="{{ route('admin.loans.send-pix', $loan) }}" onsubmit='return confirmAction(event, "Enviar PIX de Desembolso", "Confirma o envio do PIX de R$ {{ number_format($loan->amount, 2, ',', '.') }} para a chave de {{ $loan->client->name }}? O valor será liberado via MisticPay.", "zap", "amber");'>
                                     @csrf
                                     <button type="submit" class="px-3.5 py-1.5 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs uppercase tracking-wider hover:bg-amber-400 transition-colors inline-flex items-center gap-1.5 shadow-md shadow-amber-900/20">
                                         <i data-lucide="send" class="w-3.5 h-3.5"></i> Enviar PIX
@@ -124,7 +124,7 @@
                                 </a>
                                 @if($loan->disbursement_status !== 'enviado' && $loan->paidInstallmentsCount() === 0)
                                     <form method="POST" action="{{ route('admin.loans.destroy', $loan) }}" 
-                                          onsubmit="return confirm('Tem certeza que deseja excluir este contrato?');" class="inline">
+                                          onsubmit='return confirmAction(event, "Excluir Contrato", "Tem certeza que deseja excluir permanentemente o contrato {{ $loan->contract_number }}?", "trash-2", "rose");' class="inline">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" title="Excluir Contrato" class="p-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors">

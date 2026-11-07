@@ -109,7 +109,7 @@
                         <span>Transferência Liquidada</span>
                     </div>
                 @else
-                    <form method="POST" action="{{ route('admin.loans.send-pix', $loan) }}" onsubmit='return confirm("Confirma o envio do PIX de R$ {{ number_format($loan->amount, 2, ',', '.') }} para {{ $loan->client->name }}? O valor sairá do saldo MisticPay.");'>
+                    <form method="POST" action="{{ route('admin.loans.send-pix', $loan) }}" onsubmit='return confirmAction(event, "Disparar PIX via MisticPay", "Confirma a liberação imediata de R$ {{ number_format($loan->amount, 2, ',', '.') }} para a chave de {{ $loan->client->name }}? O valor sairá do saldo MisticPay.", "zap", "amber");'>
                         @csrf
                         <button type="submit" class="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-sm uppercase tracking-wider shadow-lg shadow-amber-900/30 transition-all flex items-center gap-2">
                             <i data-lucide="send" class="w-4 h-4"></i>
@@ -200,7 +200,7 @@
                         <td class="px-6 py-4 text-right">
                             <div class="flex items-center justify-end gap-2">
                                 @if($inst->status !== 'pago')
-                                    <form method="POST" action="{{ route('admin.loans.mark-installment-paid', $inst) }}" onsubmit="return confirm('Confirmar baixa manual desta parcela?')">
+                                    <form method="POST" action="{{ route('admin.loans.mark-installment-paid', $inst) }}" onsubmit='return confirmAction(event, "Baixa Manual de Parcela", "Confirmar a baixa de pagamento da parcela #{{ $inst->installment_number }} no valor de R$ {{ number_format($inst->amount, 2, ',', '.') }}?", "check-circle-2", "emerald");'>
                                         @csrf
                                         <button type="submit" title="Marcar como Pago Manualmente" class="px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-xs font-semibold transition-colors flex items-center gap-1">
                                             <i data-lucide="check" class="w-3.5 h-3.5"></i> Baixa

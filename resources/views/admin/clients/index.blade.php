@@ -113,7 +113,7 @@
                                     <i data-lucide="pencil" class="w-4 h-4"></i>
                                 </a>
                                 <form method="POST" action="{{ route('admin.clients.destroy', $client) }}" 
-                                      onsubmit="return confirm('Tem certeza que deseja excluir este cliente?');" class="inline">
+                                      onsubmit='return confirmAction(event, "Excluir Cliente", "Tem certeza que deseja excluir o cliente {{ $client->name }}? Todos os dados vinculados serão removidos.", "trash-2", "rose");' class="inline">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" title="Excluir Cliente" class="p-2 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors">
