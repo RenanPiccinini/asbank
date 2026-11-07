@@ -1,58 +1,145 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# ASBANK - Confiança que cresce 🏦⚡
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistema completo de gestão de empréstimos mútuos e correspondente bancário digital com integração nativa ao **Gateway MisticPay (PIX Cash-In e Cash-Out)**, construído com **Laravel**, **Laravel Breeze** e **MySQL**.
 
-## About Laravel
+![ASBANK Logo](public/images/logo.jpg)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 🚀 Funcionalidades Principais
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 1. Painel de Gerenciamento do Administrador (`/admin`)
+* **Menu Lateral na Esquerda:**
+  * **Dashboard:** Visão consolidada com métricas de valor total emprestado, valores recebidos via PIX, parcelas futuras, clientes ativos, fluxo de caixa e status do gateway.
+  * **Clientes:**
+    * Cadastro completo (Nome, Documento CPF/CNPJ, E-mail, Telefone, Endereço completo, Dados Bancários e Chave PIX).
+    * Criação automática de credencial para acesso ao **Portal do Cliente**.
+    * Edição, exclusão e visualização de perfil com histórico de contratos e extrato.
+  * **Empréstimos:**
+    * Simulador em tempo real integrado (cálculo de juros lineares, total financiado e valor da parcela).
+    * Geração automática de contratos numerados (`ASB-YYYY-XXXX`) e desdobramento automático de todas as parcelas mensais no banco de dados.
+    * **Enviar PIX (Cash-Out):** Disparo instantâneo do valor do empréstimo para a chave PIX do cliente via API MisticPay.
+    * **Gerar PIX de Cobrança (Cash-In):** Gera QR Code dinâmico e código Copia e Cola para cada parcela individual.
+    * **Contrato Digital & Análise de Crédito:** Emissão de contrato formal com parecer e score de crédito interno (300 a 1000) e visualização de impressão/PDF.
+  * **Extrato (Envios e Recebimentos):**
+    * Listagem de todas as saídas (desembolsos) e entradas (pagamento de parcelas).
+    * Filtros por tipo (*Todos, Apenas Envios, Apenas Recebimentos*), status (*Concluído, Pendente, Falha*), período e busca por cliente/documento/E2E.
+    * Totais em tempo real: Total Enviado, Total Recebido, Saldo Líquido e Taxas.
+  * **Configurações MisticPay:**
+    * Gestão de Chave Pública, Chave Secreta, URL Base, toggle de Modo Simulação e botão de **Testar Conexão API**.
 
-## Learning Laravel
+### 2. Portal Exclusivo do Cliente (`/cliente`)
+* **Painel do Mutuário:**
+  * Limite pré-aprovado, contratos ativos e saldo devedor.
+  * **Próximas Parcelas com PIX:** Acesso com 1 clique a *"Pagar via PIX"*, exibindo o QR Code em alta definição e o Copia e Cola com botão para copiar.
+  * **Contrato Digital Automático:** Consulta ao instrumento de crédito com termos jurídicos e score de análise de crédito.
+  * **Meu Extrato PIX:** Histórico pessoal dos valores recebidos e parcelas pagas.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 💳 Integração MisticPay (PIX e Webhooks)
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+O serviço está implementado em `App\Services\MisticPayService` e no Webhook `App\Http\Controllers\Api\MisticPayWebhookController`.
 
-## Agentic Development
+### 🔑 Como e onde pegar as chaves na MisticPay:
+1. Acesse o painel da MisticPay: **[painel.misticpay.com](https://painel.misticpay.com)** e faça login na sua conta.
+2. No menu lateral, acesse **API** > **Chaves de Acesso**.
+3. Clique em **Criar Chave de Acesso**.
+4. **Habilite obrigatoriamente os seguintes escopos (*Scopes*):**
+   * `TRANSACTION_CREATE`: Para gerar cobranças PIX dinâmicas e QR Codes (Cash-In).
+   * `WITHDRAW_CREATE`: Para enviar PIX de desembolso para a chave do cliente (Cash-Out).
+   * `TRANSACTION_READ`: Para consultar o status das transações.
+   * `BALANCE_READ`: Para consultar saldo disponível na conta.
+5. Copie a **Chave Pública** (`pk_...`) e a **Chave Secreta** (`sk_...`).
+6. Cole no painel em **Gateway MisticPay** (`/admin/configuracoes/misticpay`) ou no `.env`:
+   ```env
+   MISTICPAY_BASE_URL=https://api.misticpay.com
+   MISTICPAY_PUBLIC_KEY=pk_live_...
+   MISTICPAY_SECRET_KEY=sk_live_...
+   MISTICPAY_MOCK=false
+   ```
+7. **Cadastrar Webhook na MisticPay:**
+   * No painel da MisticPay, acesse **Webhooks** e cadastre a URL:
+     ```
+     https://seudominio.com.br/api/webhooks/misticpay
+     ```
+   * Ative os eventos para `DEPOSITO` (recebimento de PIX) e `RETIRADA` (saques/envios).
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+---
+
+## 🛠️ Tecnologias Utilizadas
+
+* **PHP 8.3+ / 8.5**
+* **Laravel 13**
+* **Laravel Breeze** (Blade Stack)
+* **MySQL**
+* **Tailwind CSS** (Tema exclusivo dark banking com as cores da marca ASBANK)
+* **Lucide Icons**
+* **Simple QrCode (BaconQrCode)**
+* **Apache mod_rewrite** (`.htaccess` e `htaccess` na raiz configurados para redirecionar para a pasta `public/`)
+
+---
+
+## 📦 Instalação e Execução Local
+
+1. **Clonar o Repositório:**
+   ```bash
+   git clone https://github.com/RenanPiccinini/asbank.git
+   cd asbank
+   ```
+
+2. **Instalar Dependências:**
+   ```bash
+   composer install
+   npm install
+   npm run build
+   ```
+
+3. **Configurar o Ambiente:**
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+   *Configure seu banco MySQL no `.env`:*
+   ```env
+   DB_CONNECTION=mysql
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_DATABASE=asbank
+   DB_USERNAME=root
+   DB_PASSWORD=
+   ```
+
+4. **Executar Migrações e Seeders:**
+   ```bash
+   php artisan migrate --seed
+   ```
+
+5. **Iniciar o Servidor:**
+   ```bash
+   php artisan serve
+   ```
+   Acesse: `http://localhost:8000`
+
+---
+
+## 🔐 Acessos de Demonstração
+
+* **Administrador Geral:**
+  * **E-mail:** `admin@asbank.com.br`
+  * **Senha:** `admin123`
+
+* **Cliente Mutuário:**
+  * **E-mail:** `carlos.silva@email.com`
+  * **Senha:** `cliente123`
+
+---
+
+## 🧪 Testes Automatizados
+
+O projeto conta com uma suíte completa de testes automatizados cobrindo autenticação, permissões, criação de clientes, geração de empréstimos, disparos PIX, geração de cobrança, extrato e processamento de webhooks:
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+php artisan test
 ```
-
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+*Resultado: 35 testes e 93 asserções com 100% de aprovação.*
