@@ -107,6 +107,8 @@ class MisticPayService
             $auth = base64_encode($this->publicKey . ':' . $this->secretKey);
             $response = Http::withHeaders([
                 'Authorization' => 'Basic ' . $auth,
+                'ci' => $this->publicKey,
+                'cs' => $this->secretKey,
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
             ])->post($this->baseUrl . '/api/transactions/create', [
@@ -219,6 +221,8 @@ class MisticPayService
             $auth = base64_encode($this->publicKey . ':' . $this->secretKey);
             $response = Http::withHeaders([
                 'Authorization' => 'Basic ' . $auth,
+                'ci' => $this->publicKey,
+                'cs' => $this->secretKey,
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
             ])->post($this->baseUrl . '/api/transactions/withdraw', [

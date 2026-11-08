@@ -61,22 +61,27 @@ class GatewaySettingController extends Controller
 
         try {
             $auth = base64_encode($publicKey . ':' . $secretKey);
-            $response = Http::timeout(8)->withHeaders([
+            $response = Http::timeout(10)->withHeaders([
                 'Authorization' => 'Basic ' . $auth,
+                'ci' => $publicKey,
+                'cs' => $secretKey,
                 'Accept' => 'application/json',
-            ])->get($baseUrl . '/api/balance'); // or health check
+            ])->get($baseUrl . '/api/users/balance');
 
             if ($response->successful()) {
                 $data = $response->json();
-                $saldo = isset($data['balance']) ? 'Saldo atual: R$ ' . number_format($data['balance'], 2, ',', '.') : 'Autenticação confirmada com sucesso.';
+                $balanceValue = $data['balance'] ?? $data['balanceAvailable'] ?? $data['data']['balance'] ?? null;
+                $saldo = is_numeric($balanceValue) ? 'Saldo em conta: R$ ' . number_format((float) $balanceValue, 2, ',', '.') : 'Autenticação e chaves confirmadas com sucesso!';
                 return back()->with('success', "Conexão com MisticPay estabelecida com sucesso! {$saldo}");
             }
 
             if ($response->status() === 401 || $response->status() === 403) {
-                return back()->with('error', 'Credenciais inválidas ou escopos não concedidos na MisticPay. Verifique se as chaves possuem escopo TRANSACTION_CREATE e WITHDRAW_CREATE.');
+                $msg = $response->json('message') ?? 'Credenciais inválidas ou revogadas.';
+                return back()->with('error', "Falha de autenticação na MisticPay (HTTP {$response->status()}): {$msg}. Verifique se a Chave Secreta digitada corresponde exatamente à Chave Pública.");
             }
 
-            return back()->with('info', "Resposta da API MisticPay (HTTP {$response->status()}): " . ($response->json('message') ?? 'Verifique os logs ou endpoint.'));
+            $errMsg = $response->json('message') ?? $response->json('error') ?? $response->body();
+            return back()->with('error', "Resposta da API MisticPay (HTTP {$response->status()}): {$errMsg}");
         } catch (\Throwable $e) {
             return back()->with('error', 'Erro ao conectar à MisticPay: ' . $e->getMessage());
         }
