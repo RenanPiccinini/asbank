@@ -270,9 +270,39 @@ curl -X POST http://localhost:8000/api/webhooks/misticpay \
   }'
 ```
 
+### 6.5. Como Zerar o Sistema (Deixar Apenas os Logins)
+
+Para limpar dados de teste (empréstimos, parcelas e extratos) e deixar o sistema 100% limpo mantendo os logins de acesso:
+
+**Opção 1: Via Terminal (Comando Artisan):**
+```sh
+php artisan asbank:reset
+```
+
+**Opção 2: Via SQL (phpMyAdmin ou terminal MySQL):**
+```sql
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE financial_transactions;
+TRUNCATE TABLE loan_installments;
+TRUNCATE TABLE loans;
+TRUNCATE TABLE personal_access_tokens;
+DELETE FROM clients WHERE email != 'carlos.silva@email.com';
+DELETE FROM users WHERE email NOT IN ('admin@asbank.com.br', 'carlos.silva@email.com');
+SET FOREIGN_KEY_CHECKS = 1;
+```
+
 ---
 
 ## 7. Histórico de Alterações e Atualizações
+
+### [2026-11-09] - Limpeza da Tela de Login & Comando de Reset do Sistema
+- **Tela de Login (`resources/views/auth/login.blade.php`):**
+  - Removido o bloco de "Acesso Rápido para Demonstração" (botões com e-mail e senha de teste).
+  - Removido o link "Esqueceu a senha?".
+- **Comando de Reset do Banco (`php artisan asbank:reset`):**
+  - Criado comando artisan para zerar empréstimos, parcelas e extratos, mantendo somente os logins de acesso.
+- **Validação de Valor Mínimo de Empréstimo:**
+  - Reduzido o valor mínimo de R$ 50,00 para R$ 0,01 para permitir testes práticos com centavos na plataforma.
 
 ### [2026-11-09] - Centralização de Credenciais no `.env` & Documentação Centralizada
 - **Remoção do Menu de Configuração:**
