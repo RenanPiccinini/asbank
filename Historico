@@ -212,26 +212,43 @@ Testes inclusos cobrem:
 - Processamento e conciliação do Webhook da MisticPay
 - Execução do comando `misticpay:test`
 
-### 6.3. Teste Manual pelo Painel Administrativo
+### 6.3. Teste Manual Direto na Plataforma (Ambiente Real com Centavos)
 
-1. Inicie a aplicação:
-   ```sh
-   php artisan serve
-   ```
-2. Acesse `http://localhost:8000/login` e entre como administrador:
-   - **E-mail:** `admin@asbank.com.br`
-   - **Senha:** `admin123`
-3. **Testar Desembolso PIX (Cash-Out):**
-   - Acesse o menu **Empréstimos**.
-   - Abra um empréstimo com status "Não Enviado".
-   - Clique no botão **Liberar Empréstimo via PIX (Cash-Out)**.
-   - O sistema disparará a chamada para a MisticPay e registrará a saída no **Extrato Geral**.
-4. **Testar Cobrança PIX (Cash-In):**
-   - Na listagem de parcelas do empréstimo, clique no botão **Gerar PIX**.
+O sistema foi flexibilizado para permitir criação de empréstimos a partir de **R$ 0,01** para testes de homologação:
+
+1. **Acesse o Painel:**
+   - URL: `https://asbank.piccininidigitalsolutions.com.br/login`
+   - Usuário Administrador: `admin@asbank.com.br` / senha configurada no seed.
+
+2. **Criar ou Editar um Cliente com a sua Chave PIX Real:**
+   - Vá no menu **Clientes**.
+   - Crie um novo cliente ou edite um existente (ex: com seu próprio Nome, CPF e Chave PIX real do seu banco).
+   - Defina uma senha de acesso para que ele possa entrar no Portal do Cliente (ex: `cliente123`).
+
+3. **Criar o Empréstimo de Teste (Ex: R$ 0,02):**
+   - Vá no menu **Empréstimos** > **Novo Empréstimo**.
+   - Selecione o cliente.
+   - Digite o valor: `0.02` (dois centavos).
+   - Taxa de juros: `0`% (ou o percentual desejado).
+   - Parcelas: `2` parcelas (gerará 2 parcelas de R$ 0,01 cada) ou `1` parcela de R$ 0,02.
+   - Clique em **Confirmar & Gerar Contrato**.
+
+4. **Testar Desembolso PIX (Cash-Out / Envio):**
+   - No empréstimo gerado, clique em **Liberar Empréstimo via PIX (Cash-Out)**.
+   - O sistema acionará a MisticPay para enviar os R$ 0,02 para a chave PIX do cliente.
+   - *Nota:* Lembre-se de que a conta MisticPay precisa ter saldo suficiente para cobrir o valor + taxa da MisticPay (R$ 0,50).
+
+5. **Testar Cobrança PIX (Cash-In / Recebimento):**
+   - Na lista de parcelas, clique em **Gerar PIX** na parcela de R$ 0,01.
    - O QR Code dinâmico e o código Copia e Cola serão gerados.
-5. **Testar Liquidação Automática:**
-   - Na parcela, clique no botão **Simular Webhook** (ou efetue o pagamento real se estiver em produção).
-   - O sistema mudará o status da parcela para **Pago**, registrará o End-to-End e atualizará o extrato financeiro.
+   - Abra o app do seu banco no celular, leia o QR Code ou cole o código Copia e Cola e pague o R$ 0,01.
+   - Assim que o pagamento for concluído no seu banco, a MisticPay enviará o Webhook para `https://asbank.piccininidigitalsolutions.com.br/api/webhooks/misticpay`.
+   - A parcela mudará automaticamente para **Pago**, e a entrada aparecerá no **Extrato Geral**!
+
+6. **Testar pelo Portal do Cliente (Experiência do Usuário):**
+   - Em uma aba anônima, acesse `/login` com o e-mail e senha do cliente.
+   - Acesse **Meus Empréstimos** > abra o contrato > clique em **Pagar via PIX**.
+   - A tela exibirá o QR Code e o Copia e Cola com polling em tempo real: assim que você pagar pelo app do seu banco, a tela mudará para "Pagamento Confirmado!" automaticamente.
 
 ### 6.4. Teste via cURL / Postman / Insomnia (Webhook)
 

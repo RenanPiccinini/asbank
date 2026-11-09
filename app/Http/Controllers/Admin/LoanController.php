@@ -59,7 +59,7 @@ class LoanController extends Controller
     {
         $validated = $request->validate([
             'client_id' => ['required', 'exists:clients,id'],
-            'amount' => ['required', 'numeric', 'min:50', 'max:1000000'],
+            'amount' => ['required', 'numeric', 'min:0.01', 'max:1000000'],
             'interest_rate' => ['required', 'numeric', 'min:0', 'max:100'],
             'installments_count' => ['required', 'integer', 'min:1', 'max:72'],
             'first_due_date' => ['required', 'date', 'after_or_equal:today'],

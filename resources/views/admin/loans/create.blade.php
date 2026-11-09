@@ -47,7 +47,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-slate-300 mb-1.5">Valor Solicitado (R$) *</label>
-                        <input type="number" step="0.01" min="50" max="1000000" name="amount" id="amount" value="{{ old('amount', '5000.00') }}" required 
+                        <input type="number" step="0.01" min="0.01" max="1000000" name="amount" id="amount" value="{{ old('amount', '5000.00') }}" required 
                                oninput="calculateSimulation()"
                                class="w-full px-4 py-2.5 rounded-xl bg-[#070D18] border border-[#162540] text-sm text-white font-bold focus:border-sky-500">
                         @error('amount') <p class="text-xs text-rose-400 mt-1">{{ $message }}</p> @enderror
