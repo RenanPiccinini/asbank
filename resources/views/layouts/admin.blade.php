@@ -70,21 +70,8 @@
             </a>
 
             <div class="pt-6 px-3 pb-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                Integrações & Sistema
+                Acesso Externo
             </div>
-
-            <!-- Gateway MisticPay -->
-            <a href="{{ route('admin.settings.misticpay') }}" 
-               class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.settings.misticpay') ? 'bg-gradient-to-r from-sky-600 to-blue-700 text-white shadow-lg shadow-sky-900/30 font-semibold' : 'text-slate-300 hover:bg-[#122038] hover:text-white' }}">
-                <i data-lucide="zap" class="w-5 h-5 {{ request()->routeIs('admin.settings.misticpay') ? 'text-white' : 'text-amber-400' }}"></i>
-                <div class="flex-1 flex items-center justify-between">
-                    <span>Gateway MisticPay</span>
-                    <span class="relative flex h-2 w-2">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                    </span>
-                </div>
-            </a>
 
             <!-- Acesso ao Portal do Cliente (Para Teste) -->
             <a href="{{ route('client.dashboard') }}" target="_blank"
@@ -104,14 +91,14 @@
                     <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i> MisticPay PIX
                 </span>
                 @php
-                    $isMock = \App\Models\GatewaySetting::get('misticpay_mock', 'true') === 'true';
+                    $isMock = app(\App\Services\MisticPayService::class)->isMockMode();
                 @endphp
                 <span class="text-[10px] px-2 py-0.5 rounded font-medium {{ $isMock ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' }}">
                     {{ $isMock ? 'SIMULAÇÃO' : 'PRODUÇÃO' }}
                 </span>
             </div>
             <p class="text-[11px] text-slate-400 leading-snug">
-                Cash-in (QR Code) e Cash-out (Envios) habilitados.
+                Cash-in (QR Code) e Cash-out (Envios) habilitados via .env.
             </p>
         </div>
 

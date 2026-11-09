@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\GatewaySettingController;
 use App\Http\Controllers\Admin\LoanController;
 use App\Http\Controllers\Admin\StatementController;
 use App\Http\Controllers\Client\ClientPortalController;
@@ -68,10 +67,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Extrato (envios e recebimentos)
     Route::get('extrato', [StatementController::class, 'index'])->name('statement.index');
 
-    // Configurações MisticPay & Integração
-    Route::get('configuracoes/misticpay', [GatewaySettingController::class, 'index'])->name('settings.misticpay');
-    Route::post('configuracoes/misticpay', [GatewaySettingController::class, 'update'])->name('settings.misticpay.update');
-    Route::post('configuracoes/misticpay/testar', [GatewaySettingController::class, 'testConnection'])->name('settings.misticpay.test');
+    // Redirecionamento legado caso alguém acesse a URL antiga de configurações
+    Route::get('configuracoes/misticpay', fn () => redirect()->route('admin.dashboard'))->name('settings.misticpay');
 });
 
 // ==========================================

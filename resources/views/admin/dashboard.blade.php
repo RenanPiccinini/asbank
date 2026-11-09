@@ -14,12 +14,13 @@
             </div>
             <div>
                 <p class="text-sm font-bold text-white">Gateway MisticPay operando em Modo de Simulação</p>
-                <p class="text-xs text-amber-400/80">Você pode testar a criação de cobranças e envios de PIX livremente. Para ativar o ambiente real, insira as chaves de API.</p>
+                <p class="text-xs text-amber-400/80">Você pode testar a criação de cobranças e envios de PIX livremente. Para produção real, configure <code class="bg-black/30 px-1 py-0.5 rounded text-amber-200">MISTICPAY_PUBLIC_KEY</code> e <code class="bg-black/30 px-1 py-0.5 rounded text-amber-200">MISTICPAY_SECRET_KEY</code> no arquivo <strong>.env</strong>.</p>
             </div>
         </div>
-        <a href="{{ route('admin.settings.misticpay') }}" class="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs uppercase tracking-wider hover:bg-amber-400 transition-colors whitespace-nowrap">
-            Configurar Chaves
-        </a>
+        <div class="px-3.5 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-300 font-semibold text-xs whitespace-nowrap flex items-center gap-2">
+            <i data-lucide="settings" class="w-3.5 h-3.5"></i>
+            <span>Configuração via .env</span>
+        </div>
     </div>
     @endif
 

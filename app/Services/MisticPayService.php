@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\FinancialTransaction;
-use App\Models\GatewaySetting;
 use App\Models\Loan;
 use App\Models\LoanInstallment;
 use Illuminate\Support\Facades\Http;
@@ -19,12 +18,12 @@ class MisticPayService
 
     public function __construct()
     {
-        $this->baseUrl = rtrim(GatewaySetting::get('misticpay_base_url', config('services.misticpay.base_url', 'https://api.misticpay.com')), '/');
-        $this->publicKey = GatewaySetting::get('misticpay_public_key', config('services.misticpay.public_key'));
-        $this->secretKey = GatewaySetting::get('misticpay_secret_key', config('services.misticpay.secret_key'));
-        
-        $mockSetting = GatewaySetting::get('misticpay_mock', config('services.misticpay.mock', 'false'));
-        $this->isMock = filter_var($mockSetting, FILTER_VALIDATE_BOOLEAN) || empty($this->publicKey) || empty($this->secretKey);
+        $this->baseUrl = rtrim((string) config('services.misticpay.base_url', 'https://api.misticpay.com'), '/');
+        $this->publicKey = config('services.misticpay.public_key') ? (string) config('services.misticpay.public_key') : null;
+        $this->secretKey = config('services.misticpay.secret_key') ? (string) config('services.misticpay.secret_key') : null;
+
+        $mockConfig = config('services.misticpay.mock', false);
+        $this->isMock = filter_var($mockConfig, FILTER_VALIDATE_BOOLEAN) || empty($this->publicKey) || empty($this->secretKey);
     }
 
     public function isConfigured(): bool
@@ -50,6 +49,68 @@ class MisticPayService
     public function getWebhookUrl(): string
     {
         return url('/api/webhooks/misticpay');
+    }
+
+    /**
+     * Test connection and credentials with MisticPay API
+     */
+    public function testConnection(): array
+    {
+        if (!$this->isConfigured()) {
+            return [
+                'success' => false,
+                'message' => 'Chave Pública (MISTICPAY_PUBLIC_KEY) ou Chave Secreta (MISTICPAY_SECRET_KEY) não estão preenchidas no .env.',
+            ];
+        }
+
+        try {
+            $auth = base64_encode($this->publicKey . ':' . $this->secretKey);
+            $response = Http::timeout(10)->withHeaders([
+                'Authorization' => 'Basic ' . $auth,
+                'ci' => $this->publicKey,
+                'cs' => $this->secretKey,
+                'Accept' => 'application/json',
+            ])->get($this->baseUrl . '/api/users/balance');
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $balanceValue = $data['balance'] ?? $data['balanceAvailable'] ?? $data['data']['balance'] ?? null;
+                $saldo = is_numeric($balanceValue)
+                    ? 'Saldo em conta: R$ ' . number_format((float) $balanceValue, 2, ',', '.')
+                    : 'Autenticação e chaves confirmadas com sucesso!';
+
+                return [
+                    'success' => true,
+                    'status' => $response->status(),
+                    'message' => "Conexão com MisticPay estabelecida com sucesso! {$saldo}",
+                    'balance' => $balanceValue,
+                    'raw' => $data,
+                ];
+            }
+
+            if ($response->status() === 401 || $response->status() === 403) {
+                $msg = $response->json('message') ?? 'Credenciais inválidas ou não autorizadas.';
+                return [
+                    'success' => false,
+                    'status' => $response->status(),
+                    'message' => "Falha de autenticação na MisticPay (HTTP {$response->status()}): {$msg}. Verifique se MISTICPAY_PUBLIC_KEY e MISTICPAY_SECRET_KEY no .env estão corretas.",
+                    'raw' => $response->json(),
+                ];
+            }
+
+            $errMsg = $response->json('message') ?? $response->json('error') ?? $response->body();
+            return [
+                'success' => false,
+                'status' => $response->status(),
+                'message' => "Resposta da API MisticPay (HTTP {$response->status()}): {$errMsg}",
+                'raw' => $response->json(),
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'success' => false,
+                'message' => 'Erro ao conectar à API MisticPay: ' . $e->getMessage(),
+            ];
+        }
     }
 
     /**

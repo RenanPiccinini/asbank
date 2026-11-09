@@ -38,7 +38,8 @@ class AsbankFeatureTest extends TestCase
         $response->assertSee('Clientes');
         $response->assertSee('Empréstimos');
         $response->assertSee('Extrato Geral');
-        $response->assertSee('Gateway MisticPay');
+        $response->assertSee('Ver Área do Cliente');
+        $response->assertDontSee('admin/configuracoes/misticpay');
     }
 
     public function test_client_cannot_access_admin_area()
@@ -179,5 +180,12 @@ class AsbankFeatureTest extends TestCase
             'type' => 'cash_in',
             'status' => 'completo',
         ]);
+    }
+
+    public function test_artisan_misticpay_test_command_runs_successfully()
+    {
+        $this->artisan('misticpay:test')
+            ->expectsOutputToContain('ASBANK • Diagnóstico & Teste da API MisticPay PIX')
+            ->assertExitCode(0);
     }
 }

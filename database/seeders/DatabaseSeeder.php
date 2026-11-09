@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Client;
 use App\Models\FinancialTransaction;
-use App\Models\GatewaySetting;
 use App\Models\Loan;
 use App\Models\LoanInstallment;
 use App\Models\User;
@@ -21,13 +20,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Settings
-        GatewaySetting::set('misticpay_base_url', 'https://api.misticpay.com');
-        GatewaySetting::set('misticpay_public_key', '');
-        GatewaySetting::set('misticpay_secret_key', '');
-        GatewaySetting::set('misticpay_mock', 'true');
-
-        // 2. Admin User
+        // 1. Admin User
         $admin = User::firstOrCreate(
             ['email' => 'admin@asbank.com.br'],
             [
