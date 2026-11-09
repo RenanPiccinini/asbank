@@ -161,6 +161,11 @@ MISTICPAY_MOCK=false
   - Identifica se o evento pertence a um recebimento de parcela ou a um desembolso de empréstimo.
   - Ao receber status `COMPLETO`, quita a parcela, armazena o código End-to-End (`e2e`), registra o movimento no extrato e, caso todas as parcelas tenham sido pagas, altera automaticamente o contrato para `quitado`.
 
+### 5.3. Requisitos de Segurança & Lista de Permissões de IP (IP Whitelist)
+- A API da MisticPay exige que o IP do servidor que realiza as chamadas esteja autorizado no painel oficial (`painel.misticpay.com` > **API** > **IPs Autorizados**).
+- Em servidores como Hostinger / cPanel que utilizam IPv6 (dual-stack), certifique-se de cadastrar tanto o IPv6 (ex: `2a02:4780:...`) quanto o IPv4 do servidor.
+- Para envios reais de PIX (Cash-Out / Desembolso), a conta na MisticPay deve possuir saldo suficiente para cobrir o valor principal + taxa de transferência (R$ 0,50). Caso contrário, a API retornará `"Saldo insuficiente"`.
+
 ---
 
 ## 6. Como Testar Todas as Funções da API e do Sistema
