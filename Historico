@@ -181,8 +181,8 @@ php artisan misticpay:test
 # Testar apenas a consulta de saldo e credenciais reais
 php artisan misticpay:test --type=balance
 
-# Testar apenas a geração de cobrança PIX (Cash-In) com valor customizado
-php artisan misticpay:test --type=cashin --amount=25.50
+# Testar apenas a geração de cobrança PIX (Cash-In) com valor customizado e documento real
+php artisan misticpay:test --type=cashin --amount=10.00 --document=SEU_CPF --name="SEU NOME"
 
 # Testar apenas o envio de PIX (Cash-Out)
 php artisan misticpay:test --type=cashout --amount=50.00

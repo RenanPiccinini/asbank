@@ -14,7 +14,11 @@ class TestMisticPayCommand extends Command
      */
     protected $signature = 'misticpay:test 
                             {--type=all : Tipo de teste a executar: all, balance, cashin, cashout, webhook}
-                            {--amount=10.00 : Valor para testar a transação}';
+                            {--amount=10.00 : Valor para testar a transação}
+                            {--document= : CPF ou CNPJ do pagador (se omitido, gera um CPF com dígitos válidos)}
+                            {--name=Cliente Teste ASBANK : Nome do pagador}
+                            {--pixkey= : Chave PIX para teste de envio Cash-Out}
+                            {--pixkeytype=cpf : Tipo da chave PIX (cpf, cnpj, email, phone, random)}';
 
     /**
      * The console command description.
@@ -85,7 +89,7 @@ class TestMisticPayCommand extends Command
         if ($allPassed) {
             $this->info('✔ Todos os testes foram executados com sucesso!');
         } else {
-            $this->warn('⚠ Alguns testes reportaram falhas. Verifique as credenciais no seu arquivo .env.');
+            $this->warn('⚠ Alguns testes reportaram observações ou falhas.');
         }
         $this->newLine();
 
@@ -116,11 +120,16 @@ class TestMisticPayCommand extends Command
     {
         $this->line('<fg=yellow;options=bold>[2/4] Testando Geração de Cobrança PIX Cash-In (/api/transactions/create)...</>');
 
+        $doc = preg_replace('/\D/', '', $this->option('document') ?: $this->generateValidCpf());
+        $name = $this->option('name') ?: 'Cliente Teste ASBANK';
+
+        $this->line("     - Pagador        : {$name} (Documento: {$doc})");
+
         $response = $misticPay->createPixCharge(
             amount: $amount,
-            payerName: 'Cliente Teste ASBANK',
-            payerDocument: '12345678901',
-            description: 'Teste Automatizado ASBANK'
+            payerName: $name,
+            payerDocument: $doc,
+            description: 'Teste Cobranca PIX ASBANK'
         );
 
         if ($response['success']) {
@@ -134,6 +143,11 @@ class TestMisticPayCommand extends Command
         }
 
         $this->error('  ✖ Falha ao criar cobrança PIX: ' . ($response['message'] ?? 'Erro desconhecido'));
+
+        if (str_contains(strtolower($response['message'] ?? ''), 'adquirente')) {
+            $this->warn('     Dica: A adquirente bancária da MisticPay exige um CPF com dígitos válidos (ou CPF real).');
+            $this->line('     Você pode passar seu próprio documento: <fg=cyan>php artisan misticpay:test --type=cashin --document=SEU_CPF --name="SEU NOME"</>');
+        }
         return false;
     }
 
@@ -141,12 +155,17 @@ class TestMisticPayCommand extends Command
     {
         $this->line('<fg=yellow;options=bold>[3/4] Testando Envio de PIX Cash-Out / Desembolso (/api/transactions/withdraw)...</>');
 
+        $doc = preg_replace('/\D/', '', $this->option('document') ?: $this->generateValidCpf());
+        $name = $this->option('name') ?: 'Cliente Teste ASBANK';
+        $pixKey = $this->option('pixkey') ?: $doc;
+        $pixKeyType = $this->option('pixkeytype') ?: 'cpf';
+
         $response = $misticPay->sendPixWithdraw(
             amount: $amount,
-            pixKey: '12345678901',
-            pixKeyType: 'cpf',
-            beneficiaryName: 'Cliente Teste ASBANK',
-            beneficiaryDoc: '12345678901',
+            pixKey: $pixKey,
+            pixKeyType: $pixKeyType,
+            beneficiaryName: $name,
+            beneficiaryDoc: $doc,
             description: 'Teste Cash-Out ASBANK'
         );
 
@@ -160,6 +179,11 @@ class TestMisticPayCommand extends Command
         }
 
         $this->error('  ✖ Falha no envio de PIX: ' . ($response['message'] ?? 'Erro desconhecido'));
+
+        if (str_contains(strtolower($response['message'] ?? ''), 'saldo insuficiente')) {
+            $this->comment('     ℹ Nota: Sua conta MisticPay está sem saldo disponível (R$ 0,00). Para transferir dinheiro real, efetue um depósito/Pix para sua conta MisticPay.');
+        }
+
         return false;
     }
 
@@ -191,5 +215,35 @@ class TestMisticPayCommand extends Command
 
         $this->error('  ✖ Falha no processamento do Webhook.');
         return false;
+    }
+
+    /**
+     * Gera um CPF matematicamente válido com dígitos verificadores corretos.
+     */
+    private function generateValidCpf(): string
+    {
+        $n = [rand(1, 9)];
+        for ($i = 1; $i < 8; $i++) {
+            $n[] = rand(0, 9);
+        }
+        $n[] = rand(1, 9);
+
+        // Primeiro dígito verificador
+        $s = 0;
+        for ($i = 0; $i < 9; $i++) {
+            $s += $n[$i] * (10 - $i);
+        }
+        $r = $s % 11;
+        $n[9] = ($r < 2) ? 0 : 11 - $r;
+
+        // Segundo dígito verificador
+        $s = 0;
+        for ($i = 0; $i < 10; $i++) {
+            $s += $n[$i] * (11 - $i);
+        }
+        $r = $s % 11;
+        $n[10] = ($r < 2) ? 0 : 11 - $r;
+
+        return implode('', $n);
     }
 }
