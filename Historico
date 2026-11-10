@@ -295,6 +295,15 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 ## 7. Histórico de Alterações e Atualizações
 
+### [2026-11-10] - Redesign Tecnológico da Home com Efeitos 3D, Parallax e Simulador Interativo
+- **Página Inicial (`resources/views/welcome.blade.php`):**
+  - Redesign completo de alta tecnologia fintech com fundo de constelação de partículas interativas em HTML5 Canvas (`#bg-particles`) e grade tecnológica sutil.
+  - Efeitos de **Parallax** em camadas durante o scroll (`data-parallax`) e animações de revelação progressiva via `IntersectionObserver`.
+  - **Cartão Digital ASBANK 3D Interativo:** Cartão metálico com perspectiva 3D (`rotateX`/`rotateY`), reflexo holográfico seguindo o cursor do mouse e widgets flutuantes com profundidade espacial (`translateZ`).
+  - **Simulador de Crédito Avançado:** Presets rápidos de valores e prazos, barra proporcional visual (Principal vs Encargos), data estimada do 1º vencimento e atualização em tempo real sincronizada com o cartão 3D.
+  - **Cards de Tecnologia 3D Tilt:** Cards com inclinação 3D e spotlight seguindo o cursor.
+  - Mantida 100% isenta de credenciais ou logins de demonstração expostos.
+
 ### [2026-11-10] - Remoção dos Acessos de Teste da Home (`welcome.blade.php`)
 - **Página Inicial (`resources/views/welcome.blade.php`):**
   - Removido o bloco "Ambientes Prontos para Teste Imediato" que exibia os cards de acesso e credenciais (`admin@asbank.com.br / admin123` e `carlos.silva@email.com / cliente123`) na Home pública.
