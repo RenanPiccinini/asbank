@@ -55,7 +55,7 @@ class LoanController extends Controller
         return view('admin.loans.create', compact('clients', 'selectedClientId'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, MisticPayService $misticPay)
     {
         $validated = $request->validate([
             'client_id' => ['required', 'exists:clients,id'],
@@ -67,6 +67,7 @@ class LoanController extends Controller
             'pix_key_type' => ['nullable', 'string'],
             'credit_score' => ['nullable', 'integer', 'min:300', 'max:1000'],
             'credit_analysis_notes' => ['nullable', 'string'],
+            'auto_send_pix' => ['nullable', 'boolean'],
         ]);
 
         $client = Client::findOrFail($validated['client_id']);
@@ -136,6 +137,19 @@ class LoanController extends Controller
 
             DB::commit();
 
+            // Se o admin marcou para enviar o PIX automaticamente na criação
+            if ($request->boolean('auto_send_pix')) {
+                $loan->load('client');
+                $pixResult = $this->executePixDisbursement($loan, $misticPay, $pixKey, $pixKeyType);
+                if ($pixResult['success']) {
+                    return redirect()->route('admin.loans.show', $loan)
+                        ->with('success', "Empréstimo {$contractNumber} criado e " . $pixResult['message']);
+                }
+
+                return redirect()->route('admin.loans.show', $loan)
+                    ->with('error', "Empréstimo {$contractNumber} criado com sucesso, porém o envio automático do PIX falhou: " . $pixResult['message']);
+            }
+
             return redirect()->route('admin.loans.show', $loan)
                 ->with('success', "Empréstimo {$contractNumber} cadastrado com sucesso! As {$installmentsCount} parcelas foram geradas.");
         } catch (\Throwable $e) {
@@ -186,18 +200,34 @@ class LoanController extends Controller
      */
     public function sendPixDisbursement(Request $request, Loan $loan, MisticPayService $misticPay)
     {
-        if ($loan->disbursement_status === 'enviado') {
-            return back()->with('error', 'O PIX deste empréstimo já foi enviado anteriormente.');
-        }
-
         $pixKey = $request->input('pix_key') ?: $loan->pix_key ?: $loan->client->pix_key;
         $pixKeyType = $request->input('pix_key_type') ?: $loan->pix_key_type ?: $loan->client->pix_key_type;
 
-        if (empty($pixKey)) {
-            return back()->with('error', 'Defina a Chave PIX do cliente para enviar os fundos.');
+        $result = $this->executePixDisbursement($loan, $misticPay, $pixKey, $pixKeyType);
+
+        if ($result['success']) {
+            return back()->with('success', $result['message']);
         }
 
-        // Call MisticPay API
+        return back()->with('error', $result['message']);
+    }
+
+    /**
+     * Executa o envio do PIX de desembolso (usado no botão manual e no envio automático na criação)
+     */
+    private function executePixDisbursement(Loan $loan, MisticPayService $misticPay, ?string $pixKey = null, ?string $pixKeyType = null): array
+    {
+        if ($loan->disbursement_status === 'enviado') {
+            return ['success' => false, 'message' => 'O PIX deste empréstimo já foi enviado anteriormente.'];
+        }
+
+        $pixKey = $pixKey ?: $loan->pix_key ?: $loan->client->pix_key;
+        $pixKeyType = $pixKeyType ?: $loan->pix_key_type ?: $loan->client->pix_key_type;
+
+        if (empty($pixKey)) {
+            return ['success' => false, 'message' => 'Defina a Chave PIX do cliente para enviar os fundos.'];
+        }
+
         $response = $misticPay->sendPixWithdraw(
             amount: (float) $loan->amount,
             pixKey: $pixKey,
@@ -208,7 +238,8 @@ class LoanController extends Controller
         );
 
         if ($response['success']) {
-            $isComplete = ($response['status'] ?? '') === 'COMPLETO';
+            $statusUpper = strtoupper((string) ($response['status'] ?? ''));
+            $isComplete = in_array($statusUpper, ['COMPLETO', 'COMPLETED', 'SUCESSO', 'CONCLUIDO']);
 
             $loan->update([
                 'pix_key' => $pixKey,
@@ -220,29 +251,85 @@ class LoanController extends Controller
                 'status' => 'ativo',
             ]);
 
-            // Register in Financial Transactions (Extrato)
-            FinancialTransaction::create([
-                'client_id' => $loan->client_id,
-                'loan_id' => $loan->id,
-                'type' => 'cash_out',
-                'category' => 'Desembolso de Empréstimo',
-                'amount' => $loan->amount,
-                'misticpay_transaction_id' => $response['transaction_id'],
-                'e2e' => $response['e2e'] ?? null,
-                'pix_key' => $pixKey,
-                'pix_key_type' => $pixKeyType,
-                'counterparty_name' => $loan->client->name,
-                'counterparty_document' => $loan->client->document,
-                'status' => $isComplete ? 'completo' : 'pendente',
-                'description' => "Envio de PIX para liberação de empréstimo Contrato {$loan->contract_number}",
-                'raw_response' => $response['raw'] ?? [],
-            ]);
+            FinancialTransaction::updateOrCreate(
+                [
+                    'loan_id' => $loan->id,
+                    'type' => 'cash_out',
+                ],
+                [
+                    'client_id' => $loan->client_id,
+                    'category' => 'Desembolso de Empréstimo',
+                    'amount' => $loan->amount,
+                    'misticpay_transaction_id' => $response['transaction_id'],
+                    'e2e' => $response['e2e'] ?? null,
+                    'pix_key' => $pixKey,
+                    'pix_key_type' => $pixKeyType,
+                    'counterparty_name' => $loan->client->name,
+                    'counterparty_document' => $loan->client->document,
+                    'status' => $isComplete ? 'completo' : 'pendente',
+                    'description' => "Envio de PIX para liberação de empréstimo Contrato {$loan->contract_number}",
+                    'raw_response' => $response['raw'] ?? [],
+                ]
+            );
 
-            $badge = $response['is_mock'] ? ' (Simulação Gateway)' : '';
-            return back()->with('success', "PIX de R$ " . number_format($loan->amount, 2, ',', '.') . " enviado com sucesso para {$loan->client->name}!{$badge}");
+            $badge = $response['is_mock'] ? ' (Simulação Gateway)' : ($isComplete ? '' : ' (Aguardando processamento na fila MisticPay)');
+            return [
+                'success' => true,
+                'message' => "PIX de R$ " . number_format($loan->amount, 2, ',', '.') . " processado para {$loan->client->name}!{$badge}",
+            ];
         }
 
-        return back()->with('error', 'Falha ao enviar PIX: ' . ($response['message'] ?? 'Erro desconhecido'));
+        return [
+            'success' => false,
+            'message' => 'Falha ao enviar PIX: ' . ($response['message'] ?? 'Erro desconhecido'),
+        ];
+    }
+
+    /**
+     * Consulta e sincroniza o status do PIX na MisticPay (via Ajax polling)
+     */
+    public function checkPixStatus(Loan $loan, MisticPayService $misticPay)
+    {
+        $updated = false;
+
+        if ($loan->disbursement_status === 'processando' && !empty($loan->disbursement_transaction_id)) {
+            $sync = $misticPay->syncTransactionStatus($loan->disbursement_transaction_id);
+            if ($sync['success']) {
+                $loan->refresh();
+                $updated = ($loan->disbursement_status !== 'processando');
+            }
+        }
+
+        foreach ($loan->installments()->where('status', 'pendente')->whereNotNull('pix_transaction_id')->get() as $inst) {
+            $sync = $misticPay->syncTransactionStatus($inst->pix_transaction_id);
+            if ($sync['success'] && in_array($sync['status'], ['COMPLETO', 'COMPLETED', 'PAID', 'SUCESSO'])) {
+                $updated = true;
+            }
+        }
+
+        $loan->refresh();
+
+        return response()->json([
+            'disbursement_status' => $loan->disbursement_status,
+            'status' => $loan->status,
+            'updated' => $updated,
+        ]);
+    }
+
+    /**
+     * Sincroniza manualmente o status de transações PIX com a API MisticPay
+     */
+    public function syncPixStatus(Loan $loan, MisticPayService $misticPay)
+    {
+        if ($loan->disbursement_status === 'processando' && !empty($loan->disbursement_transaction_id)) {
+            $misticPay->syncTransactionStatus($loan->disbursement_transaction_id);
+        }
+
+        foreach ($loan->installments()->where('status', 'pendente')->whereNotNull('pix_transaction_id')->get() as $inst) {
+            $misticPay->syncTransactionStatus($inst->pix_transaction_id);
+        }
+
+        return back()->with('success', 'Status das transações consultado e sincronizado com a MisticPay!');
     }
 
     /**

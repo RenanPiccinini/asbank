@@ -7,6 +7,7 @@ use App\Models\Loan;
 use App\Models\LoanInstallment;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class MisticPayService
@@ -52,6 +53,28 @@ class MisticPayService
     }
 
     /**
+     * Build authentication headers matching MisticPay API v1
+     */
+    protected function getAuthHeaders(array $extra = []): array
+    {
+        $auth = base64_encode($this->publicKey . ':' . $this->secretKey);
+
+        $headers = [
+            'Authorization' => 'Basic ' . $auth,
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+        ];
+
+        // Legacy ci/cs headers only when not using pk_/sk_ access keys
+        if (!str_starts_with((string) $this->publicKey, 'pk_')) {
+            $headers['ci'] = $this->publicKey;
+            $headers['cs'] = $this->secretKey;
+        }
+
+        return array_merge($headers, $extra);
+    }
+
+    /**
      * Test connection and credentials with MisticPay API
      */
     public function testConnection(): array
@@ -64,16 +87,12 @@ class MisticPayService
         }
 
         try {
-            $auth = base64_encode($this->publicKey . ':' . $this->secretKey);
-            $response = Http::timeout(10)->withHeaders([
-                'Authorization' => 'Basic ' . $auth,
-                'ci' => $this->publicKey,
-                'cs' => $this->secretKey,
-                'Accept' => 'application/json',
-            ])->get($this->baseUrl . '/api/users/balance');
+            $response = Http::timeout(10)
+                ->withHeaders($this->getAuthHeaders())
+                ->get($this->baseUrl . '/api/users/balance');
 
             if ($response->successful()) {
-                $data = $response->json();
+                $data = $response->json() ?? [];
                 $balanceValue = $data['balance'] ?? $data['balanceAvailable'] ?? $data['data']['balance'] ?? null;
                 $saldo = is_numeric($balanceValue)
                     ? 'Saldo em conta: R$ ' . number_format((float) $balanceValue, 2, ',', '.')
@@ -120,11 +139,13 @@ class MisticPayService
         float $amount,
         string $payerName,
         string $payerDocument,
-        string $description = 'Cobrança Empréstimo ASBANK',
+        string $description = 'Cobranca Emprestimo ASBANK',
         ?string $callbackUrl = null,
         ?int $installmentId = null
     ): array {
         $cleanDoc = preg_replace('/\D/', '', $payerDocument);
+        $cleanName = trim(preg_replace('/\s+/', ' ', Str::ascii($payerName)));
+        $cleanDesc = mb_substr(trim(Str::ascii($description ?: 'Cobranca Emprestimo ASBANK')), 0, 100);
         $callbackUrl = $callbackUrl ?: $this->getWebhookUrl();
         $formattedAmount = round($amount, 2);
 
@@ -138,7 +159,6 @@ class MisticPayService
                 rand(1000, 9999)
             );
 
-            // Generate clean SVG QR code
             try {
                 $svg = QrCode::size(260)->generate($copiaECola);
                 $qrCodeBase64 = 'data:image/svg+xml;base64,' . base64_encode($svg);
@@ -163,58 +183,78 @@ class MisticPayService
             ];
         }
 
+        // Generate unique internal transactionId for MisticPay reconciliation
+        $externalTxId = 'ASB' . ($installmentId ? "P{$installmentId}" : '') . date('YmdHis') . rand(100, 999);
+
+        $payload = [
+            'amount' => $formattedAmount,
+            'payerName' => $cleanName ?: 'Cliente ASBANK',
+            'payerDocument' => $cleanDoc,
+            'transactionId' => $externalTxId,
+            'description' => $cleanDesc,
+        ];
+
+        if (!empty($callbackUrl) && !str_contains($callbackUrl, 'localhost') && !str_contains($callbackUrl, '127.0.0.1')) {
+            $payload['projectWebhook'] = $callbackUrl;
+        }
+
         // Production API call
         try {
-            $auth = base64_encode($this->publicKey . ':' . $this->secretKey);
-            $response = Http::withHeaders([
-                'Authorization' => 'Basic ' . $auth,
-                'ci' => $this->publicKey,
-                'cs' => $this->secretKey,
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json',
-            ])->post($this->baseUrl . '/api/transactions/create', [
-                'amount' => $formattedAmount,
-                'payerName' => $payerName,
-                'payerDocument' => $cleanDoc,
-                'description' => $description,
-                'callbackUrl' => $callbackUrl,
-            ]);
+            $response = Http::timeout(15)
+                ->withHeaders($this->getAuthHeaders(['X-Request-Id' => $externalTxId]))
+                ->post($this->baseUrl . '/api/transactions/create', $payload);
 
             if ($response->successful()) {
-                $data = $response->json();
-                $transactionId = $data['transactionId'] ?? $data['id'] ?? (string) rand(100000, 999999);
-                $qrCode = $data['qrCode'] ?? $data['pixCopyPaste'] ?? $data['qrcode'] ?? '';
-                
-                // If base64 qrCode is not provided, generate from copia e cola
-                $qrCodeBase64 = $data['qrCodeBase64'] ?? $data['qrcodeBase64'] ?? '';
+                $json = $response->json() ?? [];
+                $data = $json['data'] ?? $json;
+
+                $transactionId = (string) ($data['transactionId'] ?? $data['id'] ?? $externalTxId);
+                $qrCode = (string) ($data['copyPaste'] ?? $data['qrCode'] ?? $data['pixCopyPaste'] ?? $data['qrcode'] ?? '');
+                $qrCodeBase64 = (string) ($data['qrCodeBase64'] ?? $data['qrcodeBase64'] ?? '');
+                $qrcodeUrl = (string) ($data['qrcodeUrl'] ?? '');
+                $status = strtoupper((string) ($data['transactionState'] ?? $data['status'] ?? 'PENDENTE'));
+
+                // If base64 qrCode is not provided, generate from copia e cola or fallback to qrcodeUrl
                 if (empty($qrCodeBase64) && !empty($qrCode)) {
-                    $svg = QrCode::size(260)->generate($qrCode);
-                    $qrCodeBase64 = 'data:image/svg+xml;base64,' . base64_encode($svg);
+                    try {
+                        $svg = QrCode::size(260)->generate($qrCode);
+                        $qrCodeBase64 = 'data:image/svg+xml;base64,' . base64_encode($svg);
+                    } catch (\Throwable $e) {
+                        $qrCodeBase64 = $qrcodeUrl;
+                    }
+                } elseif (empty($qrCodeBase64) && !empty($qrcodeUrl)) {
+                    $qrCodeBase64 = $qrcodeUrl;
                 }
 
                 return [
                     'success' => true,
                     'is_mock' => false,
-                    'transaction_id' => (string) $transactionId,
+                    'transaction_id' => $transactionId,
                     'qr_code' => $qrCode,
                     'qr_code_base64' => $qrCodeBase64,
-                    'status' => $data['status'] ?? 'PENDENTE',
+                    'status' => $status,
                     'amount' => $formattedAmount,
                     'message' => 'Cobrança PIX gerada via MisticPay',
-                    'raw' => $data,
+                    'raw' => $json,
                 ];
             }
 
+            $requestId = $response->header('x-request-id') ?: ($response->json('requestId') ?? null);
+            $errorMsg = $response->json('message') ?? $response->json('error') ?? $response->body();
+
             Log::error('MisticPay createPixCharge Error', [
                 'status' => $response->status(),
+                'request_id' => $requestId,
+                'payload' => $payload,
                 'body' => $response->body(),
             ]);
 
+            $detail = $requestId ? " [Ref: {$requestId}]" : '';
             return [
                 'success' => false,
                 'is_mock' => false,
                 'transaction_id' => null,
-                'message' => 'Erro na API MisticPay: ' . ($response->json('message') ?? $response->body()),
+                'message' => "Erro na API MisticPay (HTTP {$response->status()}): {$errorMsg}{$detail}",
                 'raw' => $response->json(),
             ];
         } catch (\Throwable $e) {
@@ -238,22 +278,35 @@ class MisticPayService
         string $pixKeyType,
         string $beneficiaryName,
         string $beneficiaryDoc,
-        ?string $description = 'Liberação Empréstimo ASBANK',
+        ?string $description = 'Liberacao Emprestimo ASBANK',
         ?string $callbackUrl = null
     ): array {
-        $cleanDoc = preg_replace('/\D/', '', $beneficiaryDoc);
         $callbackUrl = $callbackUrl ?: $this->getWebhookUrl();
         $formattedAmount = round($amount, 2);
 
-        // Map pix key type to MisticPay expected format
+        // Map pix key type to MisticPay exact expected format
         $typeMapping = [
             'cpf' => 'CPF',
             'cnpj' => 'CNPJ',
             'email' => 'EMAIL',
-            'phone' => 'PHONE',
-            'random' => 'EVP',
+            'phone' => 'TELEFONE',
+            'telefone' => 'TELEFONE',
+            'random' => 'CHAVE_ALEATORIA',
+            'evp' => 'CHAVE_ALEATORIA',
+            'chave_aleatoria' => 'CHAVE_ALEATORIA',
         ];
-        $mappedType = $typeMapping[strtolower($pixKeyType)] ?? 'CPF';
+        $mappedType = $typeMapping[strtolower(trim($pixKeyType))] ?? 'CPF';
+
+        // Clean PIX key formatting (MisticPay requires unformatted digits for CPF/CNPJ/TELEFONE)
+        $cleanPixKey = trim($pixKey);
+        if (in_array($mappedType, ['CPF', 'CNPJ', 'TELEFONE'])) {
+            $cleanPixKey = preg_replace('/\D/', '', $cleanPixKey);
+            if ($mappedType === 'TELEFONE' && strlen($cleanPixKey) === 13 && str_starts_with($cleanPixKey, '55')) {
+                $cleanPixKey = substr($cleanPixKey, 2);
+            }
+        }
+
+        $cleanDesc = mb_substr(trim(Str::ascii($description ?: 'Liberacao Emprestimo ASBANK')), 0, 100);
 
         // Mock mode
         if ($this->isMock) {
@@ -277,43 +330,50 @@ class MisticPayService
             ];
         }
 
+        $idempotencyKey = 'ASB_OUT_' . md5($cleanPixKey . '_' . $formattedAmount . '_' . date('YmdHi')) . '_' . rand(100, 999);
+
+        $payload = [
+            'amount' => $formattedAmount,
+            'pixKey' => $cleanPixKey,
+            'pixKeyType' => $mappedType,
+            'description' => $cleanDesc,
+        ];
+
+        if (!empty($callbackUrl) && !str_contains($callbackUrl, 'localhost') && !str_contains($callbackUrl, '127.0.0.1')) {
+            $payload['projectWebhook'] = $callbackUrl;
+        }
+
         // Live API call
         try {
-            $auth = base64_encode($this->publicKey . ':' . $this->secretKey);
-            $response = Http::withHeaders([
-                'Authorization' => 'Basic ' . $auth,
-                'ci' => $this->publicKey,
-                'cs' => $this->secretKey,
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json',
-            ])->post($this->baseUrl . '/api/transactions/withdraw', [
-                'amount' => $formattedAmount,
-                'pixKey' => $pixKey,
-                'pixKeyType' => $mappedType,
-                'description' => $description,
-                'callbackUrl' => $callbackUrl,
-            ]);
+            $response = Http::timeout(15)
+                ->withHeaders($this->getAuthHeaders(['X-Idempotency-Key' => $idempotencyKey]))
+                ->post($this->baseUrl . '/api/transactions/withdraw', $payload);
 
             if ($response->successful()) {
-                $data = $response->json();
-                $transactionId = $data['transactionId'] ?? $data['id'] ?? (string) rand(100000, 999999);
+                $json = $response->json() ?? [];
+                $data = $json['data'] ?? $json;
+
+                $transactionId = (string) ($data['transactionId'] ?? $data['id'] ?? $data['jobId'] ?? '');
                 $e2e = $data['e2e'] ?? null;
-                $status = $data['status'] ?? 'PROCESSANDO';
+                $status = strtoupper((string) ($data['status'] ?? $data['transactionState'] ?? 'QUEUED'));
 
                 return [
                     'success' => true,
                     'is_mock' => false,
-                    'transaction_id' => (string) $transactionId,
+                    'transaction_id' => $transactionId,
                     'e2e' => $e2e,
                     'status' => $status,
                     'amount' => $formattedAmount,
-                    'message' => 'Solicitação de envio PIX processada via MisticPay',
-                    'raw' => $data,
+                    'message' => $json['message'] ?? 'Solicitação de envio PIX processada via MisticPay',
+                    'raw' => $json,
                 ];
             }
 
+            $errorMsg = $response->json('message') ?? $response->json('error') ?? $response->body();
+
             Log::error('MisticPay sendPixWithdraw Error', [
                 'status' => $response->status(),
+                'payload' => $payload,
                 'body' => $response->body(),
             ]);
 
@@ -322,7 +382,7 @@ class MisticPayService
                 'is_mock' => false,
                 'transaction_id' => null,
                 'e2e' => null,
-                'message' => 'Erro ao enviar PIX pela MisticPay: ' . ($response->json('message') ?? $response->body()),
+                'message' => "Erro ao enviar PIX pela MisticPay (HTTP {$response->status()}): {$errorMsg}",
                 'raw' => $response->json(),
             ];
         } catch (\Throwable $e) {
@@ -339,17 +399,102 @@ class MisticPayService
     }
 
     /**
+     * Check transaction status directly on MisticPay API (POST /api/transactions/check)
+     */
+    public function checkTransaction(string $transactionId): array
+    {
+        if (empty($transactionId)) {
+            return ['success' => false, 'message' => 'ID da transação não informado.'];
+        }
+
+        if ($this->isMock) {
+            return [
+                'success' => true,
+                'is_mock' => true,
+                'transaction_id' => $transactionId,
+                'status' => 'COMPLETO',
+                'e2e' => 'E' . date('YmdHis') . rand(10000000, 99999999) . 'ASBANK',
+            ];
+        }
+
+        try {
+            $response = Http::timeout(10)
+                ->withHeaders($this->getAuthHeaders())
+                ->post($this->baseUrl . '/api/transactions/check', [
+                    'transactionId' => $transactionId,
+                ]);
+
+            if ($response->successful()) {
+                $json = $response->json() ?? [];
+                $tx = $json['transaction'] ?? $json['data'] ?? $json;
+
+                return [
+                    'success' => true,
+                    'is_mock' => false,
+                    'transaction_id' => (string) ($tx['transactionId'] ?? $transactionId),
+                    'status' => strtoupper((string) ($tx['transactionState'] ?? $tx['status'] ?? 'PENDENTE')),
+                    'type' => strtoupper((string) ($tx['transactionType'] ?? '')),
+                    'value' => (float) ($tx['value'] ?? $tx['amount'] ?? 0),
+                    'fee' => (float) ($tx['fee'] ?? 0),
+                    'e2e' => $tx['e2e'] ?? null,
+                    'raw' => $json,
+                ];
+            }
+
+            return [
+                'success' => false,
+                'message' => 'Erro ao consultar transação na MisticPay: ' . ($response->json('message') ?? $response->body()),
+                'raw' => $response->json(),
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'success' => false,
+                'message' => 'Falha ao consultar transação: ' . $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Query MisticPay for a transaction and sync local Loan / Installment state
+     */
+    public function syncTransactionStatus(string $transactionId): array
+    {
+        $check = $this->checkTransaction($transactionId);
+        if (!$check['success']) {
+            return $check;
+        }
+
+        $status = $check['status'];
+        if (in_array($status, ['COMPLETO', 'COMPLETED', 'PAID', 'SUCESSO', 'CONCLUIDO', 'FALHA', 'FAILED', 'CANCELADO', 'ERRO'])) {
+            $this->handleWebhook([
+                'transactionId' => $check['transaction_id'],
+                'transactionType' => $check['type'] ?? '',
+                'status' => $status,
+                'value' => $check['value'] ?? 0,
+                'fee' => $check['fee'] ?? 0,
+                'e2e' => $check['e2e'] ?? null,
+            ]);
+        }
+
+        return $check;
+    }
+
+    /**
      * Process Webhook payload sent by MisticPay
      */
     public function handleWebhook(array $payload): array
     {
         Log::info('MisticPay Webhook Received', $payload);
 
-        $transactionId = (string) ($payload['transactionId'] ?? $payload['id'] ?? '');
-        $transactionType = strtoupper($payload['transactionType'] ?? $payload['type'] ?? '');
-        $status = strtoupper($payload['status'] ?? '');
-        $value = (float) ($payload['value'] ?? $payload['amount'] ?? 0);
-        $e2e = $payload['e2e'] ?? null;
+        $data = $payload['data'] ?? $payload['transaction'] ?? $payload;
+
+        $transactionId = (string) ($data['transactionId'] ?? $payload['transactionId'] ?? $data['id'] ?? $payload['id'] ?? '');
+        $status = strtoupper((string) ($data['status'] ?? $data['transactionState'] ?? $payload['status'] ?? $payload['transactionState'] ?? ''));
+        $e2e = $data['e2e'] ?? $data['endToEndId'] ?? $payload['e2e'] ?? null;
+        $fee = (float) ($data['fee'] ?? $payload['fee'] ?? 0);
+
+        $isSuccessStatus = in_array($status, ['COMPLETO', 'COMPLETED', 'PAID', 'SUCESSO', 'CONCLUIDO', 'APROVADO']);
+        $isFailureStatus = in_array($status, ['FALHA', 'FAILED', 'CANCELADO', 'CANCELLED', 'ERRO', 'ERROR', 'REJEITADO', 'REJECTED']);
 
         $processed = false;
         $entityType = null;
@@ -360,15 +505,14 @@ class MisticPayService
         if ($installment) {
             $entityType = 'installment';
             $entityId = $installment->id;
-            
-            if ($status === 'COMPLETO' || $status === 'PAID' || $status === 'SUCESSO') {
+
+            if ($isSuccessStatus) {
                 $installment->update([
                     'status' => 'pago',
-                    'paid_at' => now(),
+                    'paid_at' => $installment->paid_at ?: now(),
                     'pix_e2e' => $e2e ?? $installment->pix_e2e,
                 ]);
 
-                // Create or update FinancialTransaction
                 FinancialTransaction::updateOrCreate(
                     [
                         'installment_id' => $installment->id,
@@ -379,7 +523,7 @@ class MisticPayService
                         'loan_id' => $installment->loan_id,
                         'category' => 'Pagamento de Parcela PIX',
                         'amount' => $installment->amount,
-                        'fee' => (float) ($payload['fee'] ?? 0),
+                        'fee' => $fee,
                         'misticpay_transaction_id' => $transactionId,
                         'e2e' => $e2e,
                         'counterparty_name' => $payload['clientName'] ?? $installment->loan->client->name,
@@ -406,7 +550,7 @@ class MisticPayService
             $entityType = 'loan_disbursement';
             $entityId = $loanDisbursement->id;
 
-            if ($status === 'COMPLETO' || $status === 'SUCESSO') {
+            if ($isSuccessStatus) {
                 $loanDisbursement->update([
                     'disbursement_status' => 'enviado',
                     'disbursement_e2e' => $e2e ?? $loanDisbursement->disbursement_e2e,
@@ -423,7 +567,7 @@ class MisticPayService
                         'client_id' => $loanDisbursement->client_id,
                         'category' => 'Desembolso de Empréstimo',
                         'amount' => $loanDisbursement->amount,
-                        'fee' => (float) ($payload['fee'] ?? 0),
+                        'fee' => $fee,
                         'misticpay_transaction_id' => $transactionId,
                         'e2e' => $e2e,
                         'counterparty_name' => $loanDisbursement->client->name,
@@ -437,10 +581,15 @@ class MisticPayService
                 );
 
                 $processed = true;
-            } elseif ($status === 'FALHA' || $status === 'CANCELADO' || $status === 'ERRO') {
+            } elseif ($isFailureStatus) {
                 $loanDisbursement->update([
                     'disbursement_status' => 'falha',
                 ]);
+
+                FinancialTransaction::where('loan_id', $loanDisbursement->id)
+                    ->where('type', 'cash_out')
+                    ->update(['status' => 'falha', 'raw_response' => $payload]);
+
                 $processed = true;
             }
         }
@@ -449,7 +598,7 @@ class MisticPayService
         $transaction = FinancialTransaction::where('misticpay_transaction_id', $transactionId)->first();
         if ($transaction && !$processed) {
             $transaction->update([
-                'status' => ($status === 'COMPLETO' || $status === 'PAID') ? 'completo' : (($status === 'FALHA' || $status === 'ERRO') ? 'falha' : 'pendente'),
+                'status' => $isSuccessStatus ? 'completo' : ($isFailureStatus ? 'falha' : 'pendente'),
                 'e2e' => $e2e ?? $transaction->e2e,
                 'raw_response' => $payload,
             ]);
@@ -466,4 +615,3 @@ class MisticPayService
         ];
     }
 }
-

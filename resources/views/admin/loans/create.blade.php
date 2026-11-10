@@ -146,6 +146,19 @@
                         ✓ O contrato nº <strong>ASB-{{ date('Y') }}-AUTO</strong> e todas as parcelas individuais serão geradas automaticamente no banco de dados.
                     </div>
 
+                    <!-- Automatic PIX Disbursement Option -->
+                    <label for="auto_send_pix" class="flex items-start gap-3 p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 cursor-pointer hover:bg-emerald-500/15 transition-all text-left">
+                        <input type="checkbox" name="auto_send_pix" id="auto_send_pix" value="1" {{ old('auto_send_pix') ? 'checked' : '' }} class="mt-0.5 w-4 h-4 rounded text-emerald-500 bg-[#070D18] border-emerald-500/50 focus:ring-emerald-500">
+                        <div>
+                            <span class="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
+                                <i data-lucide="zap" class="w-3.5 h-3.5"></i> Enviar PIX Automaticamente
+                            </span>
+                            <span class="text-[11px] text-slate-400 leading-tight block mt-1">
+                                Transfere o valor para a chave PIX do cliente imediatamente ao confirmar o contrato.
+                            </span>
+                        </div>
+                    </label>
+
                     <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-sm uppercase tracking-wider shadow-lg shadow-amber-900/30 transition-all flex items-center justify-center gap-2">
                         <i data-lucide="check" class="w-5 h-5"></i>
                         <span>Confirmar & Gerar Contrato</span>

@@ -59,6 +59,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Ações especiais de Empréstimos
     Route::post('loans/{loan}/enviar-pix', [LoanController::class, 'sendPixDisbursement'])->name('loans.send-pix');
+    Route::get('loans/{loan}/check-status', [LoanController::class, 'checkPixStatus'])->name('loans.check-status');
+    Route::post('loans/{loan}/sincronizar-pix', [LoanController::class, 'syncPixStatus'])->name('loans.sync-pix');
     Route::post('installments/{installment}/gerar-pix', [LoanController::class, 'generateInstallmentPix'])->name('loans.generate-installment-pix');
     Route::post('installments/{installment}/marcar-pago', [LoanController::class, 'markInstallmentPaid'])->name('loans.mark-installment-paid');
     Route::post('installments/{installment}/simular-webhook', [LoanController::class, 'simulateWebhookPayment'])->name('loans.simulate-webhook');

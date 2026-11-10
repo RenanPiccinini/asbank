@@ -132,11 +132,16 @@ class ClientPortalController extends Controller
         return view('client.loans.pay-installment', compact('client', 'installment'));
     }
 
-    public function checkInstallmentStatus(LoanInstallment $installment)
+    public function checkInstallmentStatus(LoanInstallment $installment, MisticPayService $misticPay)
     {
         $client = $this->getAuthenticatedClient();
         if (!$client || $installment->loan->client_id !== $client->id) {
             return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        if ($installment->status !== 'pago' && !empty($installment->pix_transaction_id) && !$misticPay->isMockMode()) {
+            $misticPay->syncTransactionStatus($installment->pix_transaction_id);
+            $installment->refresh();
         }
 
         return response()->json([

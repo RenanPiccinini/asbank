@@ -295,6 +295,19 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 ## 7. Histórico de Alterações e Atualizações
 
+### [2026-11-10] - Correção Completa da API MisticPay, Envio Automático & Polling em Tempo Real
+- **Correções no `MisticPayService` (Conformidade Oficial MisticPay API v1):**
+  - **Cash-In (`POST /api/transactions/create`):** Adicionado `transactionId` único, corrigido parâmetro de webhook para `projectWebhook` (em vez de `callbackUrl`), sanitização ASCII em nome/descrição e parsing correto do payload de resposta dentro de `data` (`data.transactionId`, `data.copyPaste`, `data.qrCodeBase64`, `data.qrcodeUrl`).
+  - **Cash-Out (`POST /api/transactions/withdraw`):** Corrigido mapeamento de tipos de chave PIX (`TELEFONE` e `CHAVE_ALEATORIA` em vez de `PHONE`/`EVP`), remoção automática de formatação (pontos/traços/parênteses) para CPF/CNPJ/TELEFONE, adicionado header `X-Idempotency-Key`, e corrigido parsing da fila `data` (`data.transactionId`, `data.status = QUEUED`).
+  - **Headers de Autenticação:** Envio limpo de `Authorization: Basic` para chaves `pk_`/`sk_` (mantendo `ci`/`cs` apenas para legado).
+  - **Consulta Direta (`POST /api/transactions/check`):** Implementados `checkTransaction()` e `syncTransactionStatus()` para sincronização direta de status sem depender exclusivamente de webhooks.
+- **Envio Automático de PIX na Criação do Empréstimo:**
+  - Adicionado checkbox **"Enviar PIX Automaticamente"** no formulário de criação de empréstimo (`/admin/loans/create`) e tratamento no `LoanController::store()` para disparar o Cash-Out automaticamente ao gerar o contrato.
+- **Polling em Tempo Real e Botão de Sincronização:**
+  - Adicionada rota `admin.loans.check-status` e `admin.loans.sync-pix`, além de auto-polling na página do contrato (`admin/loans/{id}`) e atualização via `checkInstallmentStatus()` no Portal do Cliente.
+- **Timezone:** Configurado `America/Sao_Paulo` como padrão em `config/app.php`.
+- **Suíte de Testes:** Ampliada e 100% aprovada (40 testes, 115 asserções).
+
 ### [2026-11-09] - Limpeza da Tela de Login & Comando de Reset do Sistema
 - **Tela de Login (`resources/views/auth/login.blade.php`):**
   - Removido o bloco de "Acesso Rápido para Demonstração" (botões com e-mail e senha de teste).

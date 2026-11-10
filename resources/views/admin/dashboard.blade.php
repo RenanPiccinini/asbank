@@ -168,8 +168,15 @@
                                     <span class="text-emerald-400 flex items-center justify-end gap-1">
                                         <i data-lucide="check" class="w-3 h-3"></i> PIX Enviado
                                     </span>
+                                @elseif($loan->disbursement_status === 'processando')
+                                    <a href="{{ route('admin.loans.show', $loan) }}" class="text-amber-300 flex items-center justify-end gap-1 hover:underline">
+                                        <i data-lucide="clock" class="w-3 h-3"></i> Processando
+                                    </a>
                                 @else
-                                    <form method="POST" action="{{ route('admin.loans.send-pix', $loan) }}" onsubmit='return confirmAction(event, "Enviar PIX de Desembolso", "Confirma o envio do PIX de R$ {{ number_format($loan->amount, 2, ',', '.') }} para a chave de {{ $loan->client->name }}? O valor sairá da conta MisticPay.", "zap", "amber");'>
+                                    @php
+                                        $dashConfirmMsg = "Confirma o envio do PIX de R$ " . number_format($loan->amount, 2, ',', '.') . " para a chave de {$loan->client->name}? O valor sairá da conta MisticPay.";
+                                    @endphp
+                                    <form method="POST" action="{{ route('admin.loans.send-pix', $loan) }}" onsubmit="return confirmAction(event, 'Enviar PIX de Desembolso', {{ Js::from($dashConfirmMsg) }}, 'zap', 'amber');">
                                         @csrf
                                         <button type="submit" class="text-amber-400 hover:text-amber-300 font-bold hover:underline flex items-center justify-end gap-1">
                                             <i data-lucide="send" class="w-3 h-3"></i> Enviar PIX

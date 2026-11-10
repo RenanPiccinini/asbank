@@ -90,6 +90,15 @@
                             <span>•</span>
                             <span>End-to-End: <span class="text-slate-200">{{ $loan->disbursement_e2e }}</span></span>
                         </div>
+                    @elseif($loan->disbursement_status === 'processando')
+                        <p class="text-xs text-amber-300 mt-1">
+                            Solicitação de PIX de <strong>R$ {{ number_format($loan->amount, 2, ',', '.') }}</strong> enviada para a fila da MisticPay. Aguardando conclusão automática...
+                        </p>
+                        <div class="flex flex-wrap items-center gap-3 text-[11px] text-slate-400 mt-2 font-mono">
+                            <span>ID MisticPay: <span class="text-slate-200">{{ $loan->disbursement_transaction_id }}</span></span>
+                            <span>•</span>
+                            <span>Destino: <span class="text-amber-300">{{ $loan->pix_key }}</span></span>
+                        </div>
                     @else
                         <p class="text-xs text-slate-400 mt-1">
                             Os fundos de <strong>R$ {{ number_format($loan->amount, 2, ',', '.') }}</strong> serão transferidos instantaneamente para a conta do cliente via API MisticPay.
@@ -108,8 +117,19 @@
                         <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
                         <span>Transferência Liquidada</span>
                     </div>
+                @elseif($loan->disbursement_status === 'processando')
+                    <form method="POST" action="{{ route('admin.loans.sync-pix', $loan) }}">
+                        @csrf
+                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2">
+                            <i data-lucide="refresh-cw" class="w-4 h-4 animate-spin"></i>
+                            <span>Atualizar Status MisticPay</span>
+                        </button>
+                    </form>
                 @else
-                    <form method="POST" action="{{ route('admin.loans.send-pix', $loan) }}" onsubmit='return confirmAction(event, "Disparar PIX via MisticPay", "Confirma a liberação imediata de R$ {{ number_format($loan->amount, 2, ',', '.') }} para a chave de {{ $loan->client->name }}? O valor sairá do saldo MisticPay.", "zap", "amber");'>
+                    @php
+                        $confirmMsg = "Confirma a liberação imediata de R$ " . number_format($loan->amount, 2, ',', '.') . " para a chave de {$loan->client->name}? O valor sairá do saldo MisticPay.";
+                    @endphp
+                    <form method="POST" action="{{ route('admin.loans.send-pix', $loan) }}" onsubmit="return confirmAction(event, 'Disparar PIX via MisticPay', {{ Js::from($confirmMsg) }}, 'zap', 'amber');">
                         @csrf
                         <button type="submit" class="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-sm uppercase tracking-wider shadow-lg shadow-amber-900/30 transition-all flex items-center gap-2">
                             <i data-lucide="send" class="w-4 h-4"></i>
@@ -279,5 +299,21 @@
         const code = document.getElementById('modalPixCode').value;
         copyToClipboard(code, 'Código PIX Copia e Cola copiado com sucesso!');
     }
+
+    @if($loan->disbursement_status === 'processando' || $loan->installments->where('status', 'pendente')->whereNotNull('pix_transaction_id')->isNotEmpty())
+    // Auto-polling para atualizar status automaticamente quando a MisticPay liquidar
+    const loanCheckUrl = "{{ route('admin.loans.check-status', $loan) }}";
+    const loanPollInterval = setInterval(() => {
+        fetch(loanCheckUrl)
+            .then(r => r.json())
+            .then(data => {
+                if (data.updated) {
+                    clearInterval(loanPollInterval);
+                    window.location.reload();
+                }
+            })
+            .catch(() => {});
+    }, 5000);
+    @endif
 </script>
 @endpush
