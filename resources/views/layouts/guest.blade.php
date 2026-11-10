@@ -27,8 +27,16 @@
             {{ $slot }}
         </div>
 
-        <div class="text-center text-xs text-slate-500">
-            © {{ date('Y') }} ASBANK • Confiança que cresce.
+        <div class="text-center text-xs text-slate-500 space-y-3">
+            <div>© {{ date('Y') }} ASBANK • Confiança que cresce.</div>
+            <div class="flex items-center justify-center gap-2.5 text-slate-400">
+                <span class="text-xs font-medium">Desenvolvido por</span>
+                <a href="https://piccininidigitalsolutions.com.br/" target="_blank" rel="noopener noreferrer"
+                   title="Piccinini Digital Solutions"
+                   class="inline-flex items-center bg-white rounded-xl p-1.5 shadow-md border border-sky-500/30 hover:border-sky-400 transition-all">
+                    <img src="{{ asset('images/pds-logo.png') }}" alt="Piccinini Digital Solutions" class="h-9 w-auto object-contain rounded-lg">
+                </a>
+            </div>
         </div>
     </div>
 

@@ -29,6 +29,9 @@ class AsbankFeatureTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('ASBANK');
         $response->assertSee('Confiança que cresce');
+        $response->assertSee('Desenvolvido por');
+        $response->assertSee('https://piccininidigitalsolutions.com.br/');
+        $response->assertSee('pds-logo.png');
         $response->assertDontSee('admin123');
         $response->assertDontSee('cliente123');
         $response->assertDontSee('Ambientes Prontos');

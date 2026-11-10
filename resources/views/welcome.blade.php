@@ -1046,14 +1046,26 @@
 
     <!-- Footer -->
     <footer class="relative z-10 bg-[#040812] py-8 text-center text-xs text-slate-500" style="border-top: 1px solid rgba(255,255,255,0.08);">
-        <div class="site-container flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
+        <div class="site-container flex flex-col md:flex-row items-center justify-between gap-5">
+            <div class="flex flex-col sm:flex-row items-center gap-3">
                 <img src="{{ asset('images/logo.jpg') }}" alt="ASBANK" class="h-8 w-auto rounded-lg border border-sky-500/20">
                 <span>© {{ date('Y') }} ASBANK • Confiança que cresce. Todos os direitos reservados.</span>
             </div>
-            <div class="text-slate-400 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                <span>Operações PIX 24/7 • Tecnologia Financeira</span>
+
+            <div class="flex flex-col sm:flex-row items-center gap-4">
+                <div class="text-slate-400 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span>Operações PIX 24/7 • Tecnologia Financeira</span>
+                </div>
+
+                <div class="flex items-center gap-2.5 text-slate-400">
+                    <span class="text-xs font-medium">Desenvolvido por</span>
+                    <a href="https://piccininidigitalsolutions.com.br/" target="_blank" rel="noopener noreferrer"
+                       title="Piccinini Digital Solutions"
+                       class="inline-flex items-center bg-white rounded-xl p-1.5 shadow-md border border-sky-500/30 hover:border-sky-400 transition-all">
+                        <img src="{{ asset('images/pds-logo.png') }}" alt="Piccinini Digital Solutions" class="h-10 w-auto object-contain rounded-lg">
+                    </a>
+                </div>
             </div>
         </div>
     </footer>

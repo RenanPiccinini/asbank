@@ -120,11 +120,23 @@
 
     <!-- Footer -->
     <footer class="bg-[#0A1324] border-t border-[#162540] py-6 text-center text-xs text-slate-500">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
             <span>© {{ date('Y') }} ASBANK • Confiança que cresce. Todos os direitos reservados.</span>
-            <span class="flex items-center gap-2 text-slate-400">
-                <i data-lucide="lock" class="w-3.5 h-3.5 text-emerald-400"></i> Ambiente Criptografado & Seguro PIX
-            </span>
+
+            <div class="flex flex-col sm:flex-row items-center gap-4">
+                <span class="flex items-center gap-2 text-slate-400">
+                    <i data-lucide="lock" class="w-3.5 h-3.5 text-emerald-400"></i> Ambiente Criptografado & Seguro PIX
+                </span>
+
+                <div class="flex items-center gap-2.5 text-slate-400">
+                    <span class="text-xs font-medium">Desenvolvido por</span>
+                    <a href="https://piccininidigitalsolutions.com.br/" target="_blank" rel="noopener noreferrer"
+                       title="Piccinini Digital Solutions"
+                       class="inline-flex items-center bg-white rounded-xl p-1.5 shadow-md border border-sky-500/30 hover:border-sky-400 transition-all">
+                        <img src="{{ asset('images/pds-logo.png') }}" alt="Piccinini Digital Solutions" class="h-9 w-auto object-contain rounded-lg">
+                    </a>
+                </div>
+            </div>
         </div>
     </footer>
 
