@@ -50,6 +50,20 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        $user = Auth::user();
+        if ($user && !$user->is_active) {
+            Auth::logout();
+
+            $clientStatus = $user->client?->status;
+            $message = $clientStatus === 'rejeitado'
+                ? 'Seu cadastro e proposta de crédito não foram aprovados no momento. Em caso de dúvidas, entre em contato com o suporte ASBANK.'
+                : 'Sua conta e solicitação de empréstimo ainda estão em análise pela diretoria do ASBANK. Assim que aprovada, seu acesso será liberado!';
+
+            throw ValidationException::withMessages([
+                'email' => $message,
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

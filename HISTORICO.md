@@ -295,6 +295,25 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 ## 7. Histórico de Alterações e Atualizações
 
+### [2026-11-10] - Fluxo Completo de Contratação via Site, Conta Pendente Bloqueada, Mesa de Análise Admin & Integração Dinâmica WhatsApp
+- **Migration (`database/migrations/2026_11_10_130000_add_proposal_fields_to_clients_and_loans.php`):**
+  - Alteração da coluna `clients.status` para `string(30)` (suportando `'ativo'`, `'pendente'`, `'rejeitado'`, `'inativo'`, `'bloqueado'`) e adição de `clients.rg` e `clients.occupation`.
+  - Adição em `loans` de `origin` (`admin`/`site`), `loan_purpose`, `reviewed_by`, `reviewed_at` e `rejection_reason`.
+- **Home (`resources/views/welcome.blade.php`):**
+  - O botão **"Contratar Agora via PIX"** (`#btnContratarViaPix`) redireciona diretamente para `/solicitar-emprestimo` levando os parâmetros `amount` e `installments` selecionados no simulador em tempo real.
+- **Formulário Público de Solicitação (`PublicLoanApplicationController`, `loans/apply.blade.php`, `loans/apply-success.blade.php`):**
+  - Formulário completo e 100% responsivo com resumo da simulação em tempo real, finalidade do crédito, dados pessoais (nome, CPF/CNPJ, RG, data de nascimento, WhatsApp, e-mail, senha e confirmação), renda mensal e profissão, endereço completo com preenchimento automático via **ViaCEP**, dados bancários e chave PIX (com atalhos para copiar CPF/CNPJ, WhatsApp ou E-mail).
+  - Ao enviar, cria `User` com `is_active = false`, `Client` com `status = 'pendente'` e `Loan` com `status = 'em_analise'` e `origin = 'site'`.
+- **Bloqueio de Acesso Enquanto Pendente/Reprovado (`LoginRequest`, `ClientMiddleware`):**
+  - Tentativas de login no `/login` ou acesso às rotas `/cliente` com conta `is_active = false` são bloqueadas com mensagem informando se o cadastro ainda está em análise ou foi reprovado.
+- **Mesa de Análises de Crédito no Painel Admin (`Admin\CreditAnalysisController`, `admin/analyses/index.blade.php`, `admin/analyses/show.blade.php`, `layouts/admin.blade.php`, `DashboardController`):**
+  - Novo item **"Análises de Crédito"** no menu esquerdo com contador ao vivo de propostas em aberto e banner de alerta no Dashboard quando há solicitações `em_analise`.
+  - Dossiê completo do solicitante, cálculo automático de comprometimento de renda, editor de contraproposta (valor, taxa, parcelas, vencimento, score, PIX e parecer) com opção **"Salvar & Enviar via WhatsApp"**, e botões dinâmicos de WhatsApp (`https://wa.me/55...`) gerados a partir do telefone de cada cliente (`Client::whatsappUrl()` e métodos específicos em `Loan`).
+  - Ao **Aprovar**, o sistema gera o cronograma de parcelas e o contrato digital (`Loan::buildStandardContractTerms()`), ativa o cliente (`status = 'ativo'`) e desbloqueia o login (`User.is_active = true`), substituindo os botões Aprovar/Reprovar pelo botão verde **"Comunicar Aprovação por WhatsApp"** (já com link do portal e dados aprovados) e atalho para desembolso PIX.
+  - Ao **Reprovar**, mantém o usuário bloqueado, registra o motivo e permite enviar o retorno por WhatsApp ou **Reabrir Análise**.
+- **Testes (`tests/Feature/AsbankFeatureTest.php`):**
+  - Adicionados testes completos cobrindo pré-preenchimento do simulador, criação de usuário bloqueado e bloqueio de login/portal, edição de contraproposta com WhatsApp no painel admin, aprovação desbloqueando acesso + substituição dos botões e reprovação/reabertura (`43 testes, 181 asserções`).
+
 ### [2026-11-10] - Rodapé "Desenvolvido por" com Logo Clicável Piccinini Digital Solutions
 - **Asset Adicionado:** Logo oficial salva em `public/images/pds-logo.png`.
 - **Rodapés Atualizados (`welcome.blade.php`, `layouts/admin.blade.php`, `layouts/client.blade.php`, `layouts/guest.blade.php`):**

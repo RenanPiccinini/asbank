@@ -30,9 +30,15 @@
             <div class="min-w-0">
                 <div class="flex flex-wrap items-center gap-2">
                     <h1 class="text-lg sm:text-xl font-bold text-white break-words">{{ $client->name }}</h1>
-                    <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold {{ $client->status === 'ativo' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-500/10 text-slate-400' }}">
-                        {{ ucfirst($client->status) }}
-                    </span>
+                    @if($client->status === 'ativo')
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Ativo</span>
+                    @elseif($client->status === 'pendente')
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">Em Análise</span>
+                    @elseif($client->status === 'rejeitado')
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">Rejeitado</span>
+                    @else
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-500/10 text-slate-400 border border-slate-500/20">{{ ucfirst($client->status) }}</span>
+                    @endif
                 </div>
                 <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 mt-1 break-all">
                     <span class="font-mono text-slate-300">CPF: {{ $client->formattedDocument() }}</span>

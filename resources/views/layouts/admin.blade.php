@@ -26,9 +26,40 @@
         .bg-\[\#0A1324\]\/90 { background-color: rgba(10, 19, 36, 0.9); }
         .bg-black\/30 { background-color: rgba(0, 0, 0, 0.3); }
         .text-amber-200 { color: #FDE68A; }
+        .text-emerald-200 { color: #A7F3D0; }
+        .text-emerald-200\/80 { color: rgba(167, 243, 208, 0.8); }
+        .text-rose-200 { color: #FECDD3; }
+        .text-rose-200\/80 { color: rgba(254, 205, 211, 0.8); }
+        .w-11 { width: 2.75rem; }
+        .p-10 { padding: 2.5rem; }
+        .font-extrabold { font-weight: 800; }
+        .space-y-2\.5 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.625rem; }
+        .bg-amber-500\/15 { background-color: rgba(245, 158, 11, 0.15); }
+        .bg-emerald-500\/15 { background-color: rgba(16, 185, 129, 0.15); }
+        .bg-rose-500\/15 { background-color: rgba(244, 63, 94, 0.15); }
+        .bg-slate-800\/70 { background-color: rgba(30, 41, 59, 0.7); }
+        .border-\[\#1E3252\] { border-color: #1E3252; }
+        .border-amber-500\/40 { border-color: rgba(245, 158, 11, 0.4); }
+        .border-rose-500\/30 { border-color: rgba(244, 63, 94, 0.3); }
+        .border-sky-500\/25 { border-color: rgba(14, 165, 233, 0.25); }
+        .shadow-amber-950\/20 { --tw-shadow-color: rgba(69, 26, 3, 0.2); --tw-shadow: var(--tw-shadow-colored); }
+        .from-amber-500\/15 { --tw-gradient-from: rgba(245, 158, 11, 0.15); --tw-gradient-to: rgba(245, 158, 11, 0); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+        .via-sky-500\/10 { --tw-gradient-to: rgba(14, 165, 233, 0); --tw-gradient-stops: var(--tw-gradient-from), rgba(14, 165, 233, 0.1), var(--tw-gradient-to); }
+        .to-blue-600\/10 { --tw-gradient-to: rgba(37, 99, 235, 0.1); }
+        .to-emerald-600 { --tw-gradient-to: #059669; }
+        .hover\:to-emerald-500:hover { --tw-gradient-to: #10B981; }
+        .hover\:bg-emerald-500\/10:hover { background-color: rgba(16, 185, 129, 0.1); }
+        .hover\:bg-emerald-500\/25:hover { background-color: rgba(16, 185, 129, 0.25); }
+        .hover\:bg-amber-500\/25:hover { background-color: rgba(245, 158, 11, 0.25); }
+        .hover\:bg-rose-500\/25:hover { background-color: rgba(244, 63, 94, 0.25); }
+        .focus\:border-rose-500:focus { border-color: #F43F5E; }
+        .placeholder-slate-500::placeholder { color: #64748B; }
         @media (min-width: 640px) {
             .sm\:flex-initial { flex: 0 1 auto; }
+            .sm\:p-5 { padding: 1.25rem; }
             .sm\:p-6 { padding: 1.5rem; }
+            .sm\:w-72 { width: 18rem; }
+            .sm\:text-2xl { font-size: 1.5rem; line-height: 2rem; }
             .sm\:p-3\.5 { padding: 0.875rem; }
             .sm\:pt-6 { padding-top: 1.5rem; }
             .sm\:px-4 { padding-left: 1rem; padding-right: 1rem; }
@@ -79,6 +110,23 @@
                class="flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.dashboard') ? 'bg-gradient-to-r from-sky-600 to-blue-700 text-white shadow-lg shadow-sky-900/30 font-semibold' : 'text-slate-300 hover:bg-[#122038] hover:text-white' }}">
                 <i data-lucide="layout-dashboard" class="w-5 h-5 {{ request()->routeIs('admin.dashboard') ? 'text-white' : 'text-sky-400' }}"></i>
                 <span>Dashboard</span>
+            </a>
+
+            <!-- Análises de Crédito -->
+            @php
+                $sidebarPendingAnalyses = \App\Models\Loan::where('status', 'em_analise')->count();
+            @endphp
+            <a href="{{ route('admin.analyses.index') }}" 
+               class="flex items-center justify-between gap-2 px-3.5 py-3 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.analyses.*') ? 'bg-gradient-to-r from-sky-600 to-blue-700 text-white shadow-lg shadow-sky-900/30 font-semibold' : 'text-slate-300 hover:bg-[#122038] hover:text-white' }}">
+                <div class="flex items-center gap-3.5 min-w-0">
+                    <i data-lucide="file-search" class="w-5 h-5 shrink-0 {{ request()->routeIs('admin.analyses.*') ? 'text-white' : 'text-amber-400' }}"></i>
+                    <span class="truncate">Análises de Crédito</span>
+                </div>
+                @if($sidebarPendingAnalyses > 0)
+                    <span class="px-2 py-0.5 rounded-full text-[11px] font-bold shrink-0 {{ request()->routeIs('admin.analyses.*') ? 'bg-white text-blue-900' : 'bg-amber-500 text-slate-950' }}">
+                        {{ $sidebarPendingAnalyses }}
+                    </span>
+                @endif
             </a>
 
             <!-- Clientes -->

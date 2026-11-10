@@ -5,6 +5,32 @@
 @section('content')
 <div class="space-y-6">
 
+    <!-- Alerta de Propostas em Análise -->
+    @if(($pendingAnalysesCount ?? 0) > 0)
+        <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-sky-500/10 to-blue-600/10 border border-amber-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg shadow-amber-950/20">
+            <div class="flex items-start sm:items-center gap-3.5">
+                <div class="w-11 h-11 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0">
+                    <i data-lucide="file-search" class="w-5 h-5 text-amber-400"></i>
+                </div>
+                <div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <h3 class="text-sm font-bold text-white">
+                            {{ $pendingAnalysesCount }} {{ $pendingAnalysesCount === 1 ? 'Proposta aguardando análise de crédito' : 'Propostas aguardando análise de crédito' }}
+                        </h3>
+                        <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-500 text-slate-950">Pendente</span>
+                    </div>
+                    <p class="text-xs text-slate-300 mt-1">
+                        Solicitações enviadas pelo simulador do site com acesso ao portal bloqueado até sua aprovação.
+                    </p>
+                </div>
+            </div>
+            <a href="{{ route('admin.analyses.index') }}" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shrink-0 transition shadow-md">
+                <i data-lucide="shield-check" class="w-4 h-4"></i>
+                <span>Analisar Propostas</span>
+            </a>
+        </div>
+    @endif
+
     <!-- Top Alert if MisticPay in simulation mode -->
     @if($gatewayStatus['is_mock'])
     <div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

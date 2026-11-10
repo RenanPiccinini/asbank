@@ -1,17 +1,24 @@
 <?php
 
 use App\Http\Controllers\Admin\ClientController;
+use App\Http\Controllers\Admin\CreditAnalysisController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LoanController;
 use App\Http\Controllers\Admin\StatementController;
 use App\Http\Controllers\Client\ClientPortalController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicLoanApplicationController;
 use Illuminate\Support\Facades\Route;
 
 // Public Landing Page
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
+
+// Public Loan Application (vindo do simulador)
+Route::get('/solicitar-emprestimo', [PublicLoanApplicationController::class, 'create'])->name('loan.apply');
+Route::post('/solicitar-emprestimo', [PublicLoanApplicationController::class, 'store'])->name('loan.apply.store');
+Route::get('/solicitar-emprestimo/enviado', [PublicLoanApplicationController::class, 'success'])->name('loan.apply.success');
 
 // Dashboard dispatcher based on role
 Route::get('/dashboard', function () {
@@ -68,6 +75,14 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Extrato (envios e recebimentos)
     Route::get('extrato', [StatementController::class, 'index'])->name('statement.index');
+
+    // Análises de Crédito (propostas recebidas pelo site)
+    Route::get('analises', [CreditAnalysisController::class, 'index'])->name('analyses.index');
+    Route::get('analises/{loan}', [CreditAnalysisController::class, 'show'])->name('analyses.show');
+    Route::patch('analises/{loan}/proposta', [CreditAnalysisController::class, 'updateProposal'])->name('analyses.update-proposal');
+    Route::post('analises/{loan}/aprovar', [CreditAnalysisController::class, 'approve'])->name('analyses.approve');
+    Route::post('analises/{loan}/reprovar', [CreditAnalysisController::class, 'reject'])->name('analyses.reject');
+    Route::post('analises/{loan}/reabrir', [CreditAnalysisController::class, 'reopen'])->name('analyses.reopen');
 
     // Redirecionamento legado caso alguém acesse a URL antiga de configurações
     Route::get('configuracoes/misticpay', fn () => redirect()->route('admin.dashboard'))->name('settings.misticpay');

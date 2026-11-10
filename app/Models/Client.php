@@ -16,6 +16,7 @@ class Client extends Model
         'name',
         'email',
         'document',
+        'rg',
         'phone',
         'birth_date',
         'zip_code',
@@ -31,6 +32,7 @@ class Client extends Model
         'bank_agency',
         'bank_account',
         'monthly_income',
+        'occupation',
         'credit_limit',
         'status',
         'notes',
@@ -82,6 +84,25 @@ class Client extends Model
             return preg_replace('/(\d{2})(\d{4})(\d{4})/', '($1) $2-$3', $phone);
         }
         return $this->phone ?? '';
+    }
+
+    public function whatsappPhone(): string
+    {
+        $digits = ltrim(preg_replace('/\D/', '', $this->phone ?? ''), '0');
+        if (strlen($digits) >= 10 && strlen($digits) <= 11) {
+            return '55' . $digits;
+        }
+        return $digits;
+    }
+
+    public function whatsappUrl(string $message = ''): string
+    {
+        $phone = $this->whatsappPhone();
+        if (empty($phone)) {
+            return '#';
+        }
+        $query = $message !== '' ? ('?text=' . rawurlencode($message)) : '';
+        return "https://wa.me/{$phone}{$query}";
     }
 }
 

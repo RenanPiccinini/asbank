@@ -17,6 +17,8 @@
             <select name="status" class="w-full sm:w-44 py-2.5 rounded-xl bg-[#070D18] border border-[#162540] text-sm text-slate-300 focus:border-sky-500">
                 <option value="">Todos os status</option>
                 <option value="ativo" {{ $status === 'ativo' ? 'selected' : '' }}>Ativos</option>
+                <option value="pendente" {{ $status === 'pendente' ? 'selected' : '' }}>Em Análise (Pendentes)</option>
+                <option value="rejeitado" {{ $status === 'rejeitado' ? 'selected' : '' }}>Rejeitados</option>
                 <option value="inativo" {{ $status === 'inativo' ? 'selected' : '' }}>Inativos</option>
                 <option value="bloqueado" {{ $status === 'bloqueado' ? 'selected' : '' }}>Bloqueados</option>
             </select>
@@ -85,6 +87,10 @@
                         <td class="px-6 py-4">
                             @if($client->status === 'ativo')
                                 <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Ativo</span>
+                            @elseif($client->status === 'pendente')
+                                <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">Em Análise</span>
+                            @elseif($client->status === 'rejeitado')
+                                <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">Rejeitado</span>
                             @elseif($client->status === 'inativo')
                                 <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-500/10 text-slate-400 border border-slate-500/20">Inativo</span>
                             @else

@@ -81,16 +81,7 @@ class LoanController extends Controller
         $totalInterest = $amount * (($interestRate / 100) * $installmentsCount);
         $totalAmount = round($amount + $totalInterest, 2);
         $installmentValue = round($totalAmount / $installmentsCount, 2);
-
-        // Adjust rounding on last installment if needed
-        $calculatedSum = $installmentValue * $installmentsCount;
-        $roundingDifference = round($totalAmount - $calculatedSum, 2);
-
-        // Auto-generate contract number: ASB-YYYY-XXXX
-        $year = date('Y');
-        $lastLoan = Loan::whereYear('created_at', $year)->latest('id')->first();
-        $sequence = $lastLoan ? ($lastLoan->id + 1) : 1001;
-        $contractNumber = sprintf('ASB-%s-%04d', $year, $sequence);
+        $contractNumber = Loan::generateContractNumber();
 
         DB::beginTransaction();
         try {
@@ -107,33 +98,17 @@ class LoanController extends Controller
                 'installment_value' => $installmentValue,
                 'first_due_date' => $validated['first_due_date'],
                 'status' => 'aprovado',
+                'origin' => 'admin',
                 'credit_score' => $validated['credit_score'] ?? rand(750, 920),
                 'credit_analysis_notes' => $validated['credit_analysis_notes'] ?? 'Análise automática de crédito ASBANK realizada com score favorável e limite pré-aprovado.',
                 'pix_key' => $pixKey,
                 'pix_key_type' => $pixKeyType,
                 'disbursement_status' => 'nao_enviado',
                 'created_by' => auth()->id(),
-                'contract_terms' => $this->generateStandardContractTerms($client, $contractNumber, $amount, $totalAmount, $installmentsCount, $installmentValue, $interestRate),
+                'contract_terms' => Loan::buildStandardContractTerms($client, $contractNumber, $amount, $totalAmount, $installmentsCount, $installmentValue, $interestRate),
             ]);
 
-            // Create installments
-            $firstDueDate = Carbon::parse($validated['first_due_date']);
-            for ($i = 1; $i <= $installmentsCount; $i++) {
-                $dueDate = (clone $firstDueDate)->addMonths($i - 1);
-                $parcelAmount = $installmentValue;
-                // Add rounding diff to last installment
-                if ($i === $installmentsCount && $roundingDifference != 0) {
-                    $parcelAmount += $roundingDifference;
-                }
-
-                LoanInstallment::create([
-                    'loan_id' => $loan->id,
-                    'installment_number' => $i,
-                    'amount' => $parcelAmount,
-                    'due_date' => $dueDate->toDateString(),
-                    'status' => 'pendente',
-                ]);
-            }
+            $loan->generateInstallments();
 
             DB::commit();
 
@@ -454,40 +429,5 @@ class LoanController extends Controller
     {
         $loan->load(['client', 'installments']);
         return view('admin.loans.contract-print', compact('loan'));
-    }
-
-    /**
-     * Helper to generate formal contract terms
-     */
-    private function generateStandardContractTerms(Client $client, string $contractNumber, float $amount, float $total, int $count, float $parcelValue, float $rate): string
-    {
-        $doc = $client->formattedDocument();
-        $date = date('d/m/Y');
-
-        return <<<HTML
-<div class="contract-body space-y-4 text-justify text-sm leading-relaxed text-slate-300">
-    <p><strong>INSTRUMENTO PARTICULAR DE CONTRATO DE MÚTUO FINANCEIRO COM LIQUIDAÇÃO EM PARCELAS PIX</strong></p>
-    
-    <p><strong>CONTRATO Nº {$contractNumber}</strong></p>
-
-    <p><strong>1. DAS PARTES:</strong><br>
-    <strong>CREDORA:</strong> ASBANK SERVIÇOS FINANCEIROS LTDA, instituição financeira privada e correspondente bancário digital, doravante denominada simplesmente <strong>ASBANK</strong>.<br>
-    <strong>DEVEDOR(A):</strong> {$client->name}, inscrito(a) no CPF/CNPJ sob o nº {$doc}, com chave PIX cadastrada ({$client->pix_key_type}: {$client->pix_key}), doravante denominado(a) <strong>MUTUÁRIO(A)</strong>.</p>
-
-    <p><strong>2. DO OBJETO E VALORES:</strong><br>
-    A CREDORA concede ao(à) MUTUÁRIO(A), a título de mútuo financeiro, o valor principal líquido de <strong>R$ number_format({$amount}, 2, ',', '.')</strong>, a ser transferido diretamente para a chave PIX informada pelo mutuário, mediante aprovação do comitê de crédito.</p>
-
-    <p><strong>3. DO PAGAMENTO E ENCARGOS:</strong><br>
-    O montante total financiado, acrescido de taxa de remuneração de {$rate}% a.m., totaliza <strong>R$ number_format({$total}, 2, ',', '.')</strong>, dividido em <strong>{$count} parcelas</strong> fixas e sucessivas de <strong>R$ number_format({$parcelValue}, 2, ',', '.')</strong>, com vencimentos descritos no cronograma anexo.</p>
-
-    <p><strong>4. DA LIQUIDAÇÃO VIA PIX:</strong><br>
-    As parcelas serão quitadas mediante QR Code PIX ou chave PIX Copia e Cola disponibilizados no portal do cliente e enviados via notificação eletrônica pela ASBANK.</p>
-
-    <p><strong>5. ANÁLISE DE CRÉDITO E CONFORMIDADE:</strong><br>
-    Este contrato foi emitido após validação biométrica e consulta automatizada aos birôs de crédito, com parecer favorável do sistema antifraude ASBANK.</p>
-
-    <p class="pt-4">Emitido digitalmente pelo sistema ASBANK em {$date}.</p>
-</div>
-HTML;
     }
 }

@@ -17,6 +17,13 @@ class ClientMiddleware
             return redirect()->route('login');
         }
 
+        if (!auth()->user()->is_active) {
+            auth()->logout();
+            return redirect()->route('login')->withErrors([
+                'email' => 'Sua conta está pendente de aprovação ou inativa no momento.',
+            ]);
+        }
+
         if (auth()->user()->role === 'admin' && !$request->is('admin*')) {
             // Admin can access client portal or admin portal
             return $next($request);

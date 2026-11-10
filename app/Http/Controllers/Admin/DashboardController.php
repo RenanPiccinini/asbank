@@ -19,6 +19,7 @@ class DashboardController extends Controller
         $totalAReceber = (float) LoanInstallment::where('status', '!=', 'pago')->sum('amount');
         $totalClientes = Client::count();
         $totalEmprestimos = Loan::count();
+        $pendingAnalysesCount = Loan::where('status', 'em_analise')->count();
 
         // Extrato stats
         $totalEnviosPix = (float) FinancialTransaction::where('type', 'cash_out')->where('status', 'completo')->sum('amount');
@@ -49,6 +50,7 @@ class DashboardController extends Controller
             'totalAReceber',
             'totalClientes',
             'totalEmprestimos',
+            'pendingAnalysesCount',
             'totalEnviosPix',
             'totalRecebimentosPix',
             'recentLoans',

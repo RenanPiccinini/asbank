@@ -914,7 +914,7 @@
                                     </div>
                                 </div>
 
-                                <a href="{{ auth()->check() ? (auth()->user()->isAdmin() ? route('admin.loans.create') : route('client.dashboard')) : route('login') }}"
+                                <a id="btnContratarViaPix" href="{{ route('loan.apply', ['amount' => 5000, 'installments' => 12]) }}"
                                    class="shimmer-bar w-full py-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg transition-all">
                                     <i data-lucide="check-circle-2" class="w-4 h-4"></i>
                                     <span>Contratar Agora via PIX</span>
@@ -1123,6 +1123,11 @@
             const due = new Date();
             due.setDate(due.getDate() + 30);
             document.getElementById('resFirstDue').innerText = '1º vencimento estimado em ' + due.toLocaleDateString('pt-BR');
+
+            const applyBtn = document.getElementById('btnContratarViaPix');
+            if (applyBtn) {
+                applyBtn.href = "{{ route('loan.apply') }}?amount=" + amount + "&installments=" + months;
+            }
         }
 
         // 2. 3D INTERACTIVE HERO CARD TILT + HOLOGRAPHIC GLARE

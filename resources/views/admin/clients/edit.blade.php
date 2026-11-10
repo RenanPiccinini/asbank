@@ -52,6 +52,8 @@
                     <label class="block text-xs font-semibold text-slate-300 mb-1.5">Status Cadastral</label>
                     <select name="status" class="w-full px-4 py-2.5 rounded-xl bg-[#070D18] border border-[#162540] text-sm text-white focus:border-sky-500">
                         <option value="ativo" {{ old('status', $client->status) === 'ativo' ? 'selected' : '' }}>Ativo</option>
+                        <option value="pendente" {{ old('status', $client->status) === 'pendente' ? 'selected' : '' }}>Em Análise (Pendente)</option>
+                        <option value="rejeitado" {{ old('status', $client->status) === 'rejeitado' ? 'selected' : '' }}>Rejeitado</option>
                         <option value="inativo" {{ old('status', $client->status) === 'inativo' ? 'selected' : '' }}>Inativo</option>
                         <option value="bloqueado" {{ old('status', $client->status) === 'bloqueado' ? 'selected' : '' }}>Bloqueado</option>
                     </select>

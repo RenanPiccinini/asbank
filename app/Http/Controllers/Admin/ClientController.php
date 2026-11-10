@@ -140,7 +140,7 @@ class ClientController extends Controller
             'bank_account' => ['nullable', 'string', 'max:30'],
             'monthly_income' => ['nullable', 'numeric', 'min:0'],
             'credit_limit' => ['nullable', 'numeric', 'min:0'],
-            'status' => ['required', 'in:ativo,inativo,bloqueado'],
+            'status' => ['required', 'in:ativo,pendente,rejeitado,inativo,bloqueado'],
             'notes' => ['nullable', 'string'],
             'new_password' => ['nullable', 'string', 'min:6'],
         ]);
@@ -155,6 +155,7 @@ class ClientController extends Controller
                 'email' => $client->email,
                 'document' => $client->document,
                 'phone' => $client->phone,
+                'is_active' => $client->status === 'ativo',
             ]);
             if (!empty($request->input('new_password'))) {
                 $client->user->update(['password' => Hash::make($request->input('new_password'))]);
