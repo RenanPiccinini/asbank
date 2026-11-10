@@ -67,40 +67,21 @@
                         Plataforma inteligente de concessão de empréstimos mútuos com geração automática de contratos digitais, análise de score de crédito, envio instantâneo de PIX e liquidação automática via Webhooks MisticPay.
                     </p>
 
-                    <!-- Quick Demo Portals Box -->
-                    <div class="p-6 rounded-2xl bg-[#0A1324] border border-[#162540] space-y-4 shadow-xl">
-                        <span class="text-xs font-bold text-amber-400 uppercase tracking-wider block">
-                            Ambientes Prontos para Teste Imediato:
-                        </span>
-                        
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <!-- Admin Card -->
-                            <a href="{{ route('login') }}" class="p-4 rounded-xl bg-[#070D18] border border-sky-500/30 hover:border-sky-400 transition-all group block">
-                                <div class="flex items-center justify-between mb-2">
-                                    <span class="text-xs font-bold text-sky-400 flex items-center gap-1.5">
-                                        <i data-lucide="shield" class="w-4 h-4"></i> Gerenciador Admin
-                                    </span>
-                                    <i data-lucide="arrow-right" class="w-4 h-4 text-sky-400 group-hover:translate-x-1 transition-transform"></i>
-                                </div>
-                                <p class="text-[11px] text-slate-400">Menu na esquerda, clientes, empréstimos, extrato e MisticPay.</p>
-                                <div class="mt-2 text-[10px] font-mono text-slate-300">
-                                    admin@asbank.com.br / admin123
-                                </div>
+                    <div class="flex flex-wrap items-center gap-4 pt-2">
+                        @auth
+                            <a href="{{ auth()->user()->isAdmin() ? route('admin.dashboard') : route('client.dashboard') }}" class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-sky-900/30 transition-all inline-flex items-center gap-2">
+                                <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                                <span>Ir para o Painel</span>
                             </a>
-
-                            <!-- Client Card -->
-                            <a href="{{ route('login') }}" class="p-4 rounded-xl bg-[#070D18] border border-amber-500/30 hover:border-amber-400 transition-all group block">
-                                <div class="flex items-center justify-between mb-2">
-                                    <span class="text-xs font-bold text-amber-400 flex items-center gap-1.5">
-                                        <i data-lucide="user" class="w-4 h-4"></i> Portal do Cliente
-                                    </span>
-                                    <i data-lucide="arrow-right" class="w-4 h-4 text-amber-400 group-hover:translate-x-1 transition-transform"></i>
-                                </div>
-                                <p class="text-[11px] text-slate-400">Acompanhar contrato, análise de crédito, pagar com PIX.</p>
-                                <div class="mt-2 text-[10px] font-mono text-slate-300">
-                                    carlos.silva@email.com / cliente123
-                                </div>
+                        @else
+                            <a href="{{ route('login') }}" class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-sky-900/30 transition-all inline-flex items-center gap-2">
+                                <i data-lucide="log-in" class="w-4 h-4"></i>
+                                <span>Acessar Minha Conta</span>
                             </a>
+                        @endauth
+                        <div class="flex items-center gap-4 text-xs text-slate-400">
+                            <span class="flex items-center gap-1.5"><i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i> 100% Digital</span>
+                            <span class="flex items-center gap-1.5"><i data-lucide="zap" class="w-4 h-4 text-amber-400"></i> PIX Instantâneo</span>
                         </div>
                     </div>
                 </div>

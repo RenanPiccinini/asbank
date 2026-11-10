@@ -295,6 +295,12 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 ## 7. Histórico de Alterações e Atualizações
 
+### [2026-11-10] - Remoção dos Acessos de Teste da Home (`welcome.blade.php`)
+- **Página Inicial (`resources/views/welcome.blade.php`):**
+  - Removido o bloco "Ambientes Prontos para Teste Imediato" que exibia os cards de acesso e credenciais (`admin@asbank.com.br / admin123` e `carlos.silva@email.com / cliente123`) na Home pública.
+  - Substituído por um botão limpo de acesso à conta ("Acessar Minha Conta" / "Ir para o Painel") com selos informativos.
+  - Atualizado teste de feature `test_landing_page_is_accessible` garantindo que nenhuma credencial seja exibida na Home.
+
 ### [2026-11-10] - Correção Completa da API MisticPay, Envio Automático & Polling em Tempo Real
 - **Correções no `MisticPayService` (Conformidade Oficial MisticPay API v1):**
   - **Cash-In (`POST /api/transactions/create`):** Adicionado `transactionId` único, corrigido parâmetro de webhook para `projectWebhook` (em vez de `callbackUrl`), sanitização ASCII em nome/descrição e parsing correto do payload de resposta dentro de `data` (`data.transactionId`, `data.copyPaste`, `data.qrCodeBase64`, `data.qrcodeUrl`).
