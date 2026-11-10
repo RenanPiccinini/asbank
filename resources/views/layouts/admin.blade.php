@@ -14,8 +14,44 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <style>
+        .overflow-x-hidden { overflow-x: hidden; }
+        .break-words { overflow-wrap: break-word; }
+        .break-all { word-break: break-all; }
+        .min-h-20 { min-height: 5rem; }
+        .ml-auto { margin-left: auto; }
+        .gap-x-3 { column-gap: 0.75rem; }
+        .gap-y-1 { row-gap: 0.25rem; }
+        .bg-\[\#0A1324\]\/90 { background-color: rgba(10, 19, 36, 0.9); }
+        .bg-black\/30 { background-color: rgba(0, 0, 0, 0.3); }
+        .text-amber-200 { color: #FDE68A; }
+        @media (min-width: 640px) {
+            .sm\:flex-initial { flex: 0 1 auto; }
+            .sm\:p-6 { padding: 1.5rem; }
+            .sm\:p-3\.5 { padding: 0.875rem; }
+            .sm\:pt-6 { padding-top: 1.5rem; }
+            .sm\:px-4 { padding-left: 1rem; padding-right: 1rem; }
+            .sm\:gap-3 { gap: 0.75rem; }
+            .sm\:gap-6 { gap: 1.5rem; }
+            .sm\:justify-end { justify-content: flex-end; }
+            .sm\:text-right { text-align: right; }
+            .sm\:text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+            .sm\:text-xs { font-size: 0.75rem; line-height: 1rem; }
+            .sm\:w-14 { width: 3.5rem; }
+            .sm\:h-14 { height: 3.5rem; }
+            .sm\:w-16 { width: 4rem; }
+            .sm\:h-16 { height: 4rem; }
+            .sm\:w-7 { width: 1.75rem; }
+            .sm\:h-7 { height: 1.75rem; }
+            .sm\:h-4 { height: 1rem; }
+        }
+        @media (min-width: 1024px) {
+            .lg\:w-auto { width: auto; }
+        }
+    </style>
 </head>
-<body class="font-sans antialiased bg-[#070D18] text-slate-100 min-h-screen flex">
+<body class="font-sans antialiased bg-[#070D18] text-slate-100 min-h-screen flex overflow-x-hidden">
 
     <!-- Mobile Sidebar Backdrop -->
     <div id="sidebar-backdrop" class="fixed inset-0 bg-black/60 z-40 lg:hidden hidden" onclick="toggleSidebar()"></div>
@@ -125,60 +161,60 @@
     <!-- MAIN CONTENT AREA -->
     <div class="flex-1 flex flex-col min-w-0 lg:pl-72">
         <!-- Top Header -->
-        <header class="h-20 bg-[#0A1324]/80 backdrop-blur-md border-b border-[#162540] sticky top-0 z-30 px-6 flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800">
-                    <i data-lucide="menu" class="w-6 h-6"></i>
+        <header class="min-h-20 py-3 bg-[#0A1324]/90 backdrop-blur-md border-b border-[#162540] sticky top-0 z-30 px-4 sm:px-6 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+                <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-xl text-slate-300 bg-[#0F1D38] border border-[#162540] hover:text-white hover:bg-slate-800 shrink-0">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
                 </button>
-                <div>
-                    <h1 class="text-lg font-bold text-white flex items-center gap-2">
+                <div class="min-w-0">
+                    <h1 class="text-base sm:text-lg font-bold text-white flex items-center gap-2 truncate">
                         @yield('header-title', 'Painel Administrativo')
                     </h1>
-                    <p class="text-xs text-slate-400 hidden sm:block">ASBANK • Sistema de Gestão Financeira e Empréstimos PIX</p>
+                    <p class="text-[11px] sm:text-xs text-slate-400 truncate">ASBANK • Sistema de Gestão Financeira e Empréstimos PIX</p>
                 </div>
             </div>
 
             <!-- Header Quick Actions -->
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
                 <a href="{{ route('admin.loans.create') }}" 
-                   class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold text-xs uppercase tracking-wider shadow-lg shadow-amber-900/20 hover:from-amber-400 hover:to-amber-500 transition-all">
-                    <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                   class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold text-[11px] sm:text-xs uppercase tracking-wider shadow-lg shadow-amber-900/20 hover:from-amber-400 hover:to-amber-500 transition-all whitespace-nowrap">
+                    <i data-lucide="plus-circle" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
                     <span>Novo Empréstimo</span>
                 </a>
                 <a href="{{ route('admin.clients.create') }}" 
-                   class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-600/20 text-sky-300 border border-sky-500/30 hover:bg-sky-600/30 font-semibold text-xs transition-all">
-                    <i data-lucide="user-plus" class="w-4 h-4"></i>
+                   class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl bg-sky-600/20 text-sky-300 border border-sky-500/30 hover:bg-sky-600/30 font-semibold text-[11px] sm:text-xs transition-all whitespace-nowrap">
+                    <i data-lucide="user-plus" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
                     <span>Novo Cliente</span>
                 </a>
             </div>
         </header>
 
         <!-- Flash Messages -->
-        <div class="px-6 pt-6">
+        <div class="px-4 sm:px-6 pt-4 sm:pt-6">
             @if (session('success'))
                 <div class="flex items-start gap-3 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-sm mb-4 animate-fadeIn">
                     <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-400 shrink-0 mt-0.5"></i>
-                    <div class="flex-1 font-medium">{{ session('success') }}</div>
+                    <div class="flex-1 font-medium break-words">{{ session('success') }}</div>
                 </div>
             @endif
 
             @if (session('error'))
                 <div class="flex items-start gap-3 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-sm mb-4 animate-fadeIn">
                     <i data-lucide="alert-octagon" class="w-5 h-5 text-rose-400 shrink-0 mt-0.5"></i>
-                    <div class="flex-1 font-medium">{{ session('error') }}</div>
+                    <div class="flex-1 font-medium break-words">{{ session('error') }}</div>
                 </div>
             @endif
 
             @if (session('info'))
                 <div class="flex items-start gap-3 p-4 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-300 text-sm mb-4 animate-fadeIn">
                     <i data-lucide="info" class="w-5 h-5 text-sky-400 shrink-0 mt-0.5"></i>
-                    <div class="flex-1 font-medium">{{ session('info') }}</div>
+                    <div class="flex-1 font-medium break-words">{{ session('info') }}</div>
                 </div>
             @endif
         </div>
 
         <!-- Page Content -->
-        <main class="flex-1 p-6">
+        <main class="flex-1 p-4 sm:p-6">
             @yield('content')
         </main>
 

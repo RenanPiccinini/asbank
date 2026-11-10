@@ -96,9 +96,9 @@
     </div>
 
     <!-- Extrato Summary Strip -->
-    <div class="p-6 rounded-2xl bg-gradient-to-r from-[#0A1324] via-[#0F1E3A] to-[#0A1324] border border-[#162540] flex flex-col md:flex-row items-center justify-between gap-6">
+    <div class="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-[#0A1324] via-[#0F1E3A] to-[#0A1324] border border-[#162540] flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div class="flex items-center gap-4">
-            <div class="p-3.5 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30">
+            <div class="p-3.5 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0">
                 <i data-lucide="zap" class="w-7 h-7"></i>
             </div>
             <div>
@@ -106,17 +106,17 @@
                 <p class="text-xs text-slate-400">Resumo consolidado de todas as entradas e saídas processadas</p>
             </div>
         </div>
-        <div class="flex items-center gap-6">
-            <div class="text-right">
+        <div class="flex flex-wrap items-center justify-between sm:justify-end gap-4 sm:gap-6 w-full md:w-auto">
+            <div class="text-left sm:text-right">
                 <p class="text-xs text-slate-400">Total Enviado (Cash-Out)</p>
                 <p class="text-base font-bold text-rose-400">- R$ {{ number_format($totalEnviosPix, 2, ',', '.') }}</p>
             </div>
-            <div class="h-8 w-px bg-slate-700"></div>
-            <div class="text-right">
+            <div class="hidden sm:block h-8 w-px bg-slate-700"></div>
+            <div class="text-left sm:text-right">
                 <p class="text-xs text-slate-400">Total Recebido (Cash-In)</p>
                 <p class="text-base font-bold text-emerald-400">+ R$ {{ number_format($totalRecebimentosPix, 2, ',', '.') }}</p>
             </div>
-            <a href="{{ route('admin.statement.index') }}" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs transition-colors flex items-center gap-1.5 shadow-md">
+            <a href="{{ route('admin.statement.index') }}" class="w-full sm:w-auto justify-center px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-semibold text-xs transition-colors flex items-center gap-1.5 shadow-md whitespace-nowrap">
                 Ver Extrato Completo <i data-lucide="chevron-right" class="w-4 h-4"></i>
             </a>
         </div>
@@ -126,7 +126,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         <!-- Recent Loans -->
-        <div class="p-6 rounded-2xl bg-[#0A1324] border border-[#162540]">
+        <div class="p-5 sm:p-6 rounded-2xl bg-[#0A1324] border border-[#162540]">
             <div class="flex items-center justify-between mb-5">
                 <div class="flex items-center gap-2.5">
                     <i data-lucide="banknote" class="w-5 h-5 text-amber-400"></i>
@@ -140,16 +140,16 @@
             <div class="space-y-3">
                 @forelse($recentLoans as $loan)
                     @php $badge = $loan->statusBadge(); @endphp
-                    <div class="p-4 rounded-xl bg-[#070D18] border border-[#162540] flex items-center justify-between hover:border-slate-700 transition-colors">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-sky-600/10 border border-sky-500/20 flex items-center justify-center font-bold text-sky-400 text-xs">
+                    <div class="p-4 rounded-xl bg-[#070D18] border border-[#162540] flex flex-wrap items-center justify-between gap-3 hover:border-slate-700 transition-colors">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-10 h-10 rounded-xl bg-sky-600/10 border border-sky-500/20 flex items-center justify-center font-bold text-sky-400 text-xs shrink-0">
                                 {{ $loan->installments_count }}x
                             </div>
-                            <div>
-                                <a href="{{ route('admin.loans.show', $loan) }}" class="text-sm font-bold text-white hover:text-sky-400 transition-colors">
+                            <div class="min-w-0">
+                                <a href="{{ route('admin.loans.show', $loan) }}" class="text-sm font-bold text-white hover:text-sky-400 transition-colors block truncate">
                                     {{ $loan->client->name }}
                                 </a>
-                                <div class="flex items-center gap-2 text-xs text-slate-400 mt-0.5">
+                                <div class="flex flex-wrap items-center gap-2 text-xs text-slate-400 mt-0.5">
                                     <span>{{ $loan->contract_number }}</span>
                                     <span>•</span>
                                     <span class="px-2 py-0.5 rounded text-[10px] border {{ $badge['class'] }}">
@@ -159,7 +159,7 @@
                             </div>
                         </div>
 
-                        <div class="text-right">
+                        <div class="text-right shrink-0 ml-auto">
                             <div class="text-sm font-bold text-white">
                                 R$ {{ number_format($loan->amount, 2, ',', '.') }}
                             </div>
@@ -195,7 +195,7 @@
         </div>
 
         <!-- Recent Financial Transactions (Extrato) -->
-        <div class="p-6 rounded-2xl bg-[#0A1324] border border-[#162540]">
+        <div class="p-5 sm:p-6 rounded-2xl bg-[#0A1324] border border-[#162540]">
             <div class="flex items-center justify-between mb-5">
                 <div class="flex items-center gap-2.5">
                     <i data-lucide="arrow-left-right" class="w-5 h-5 text-sky-400"></i>
@@ -209,13 +209,13 @@
             <div class="space-y-3">
                 @forelse($recentTransactions as $tx)
                     @php $typeBadge = $tx->typeBadge(); @endphp
-                    <div class="p-4 rounded-xl bg-[#070D18] border border-[#162540] flex items-center justify-between hover:border-slate-700 transition-colors">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl {{ $tx->type === 'cash_out' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' }} flex items-center justify-center font-bold">
+                    <div class="p-4 rounded-xl bg-[#070D18] border border-[#162540] flex flex-wrap items-center justify-between gap-3 hover:border-slate-700 transition-colors">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-10 h-10 rounded-xl {{ $tx->type === 'cash_out' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' }} flex items-center justify-center font-bold shrink-0">
                                 <i data-lucide="{{ $tx->type === 'cash_out' ? 'arrow-up-right' : 'arrow-down-left' }}" class="w-5 h-5"></i>
                             </div>
-                            <div>
-                                <p class="text-sm font-bold text-white">
+                            <div class="min-w-0">
+                                <p class="text-sm font-bold text-white truncate">
                                     {{ $tx->counterparty_name ?: ($tx->client->name ?? 'Transação PIX') }}
                                 </p>
                                 <p class="text-xs text-slate-400">
@@ -224,7 +224,7 @@
                             </div>
                         </div>
 
-                        <div class="text-right">
+                        <div class="text-right shrink-0 ml-auto">
                             <span class="text-sm font-bold {{ $typeBadge['color'] }}">
                                 {{ $typeBadge['sign'] }} R$ {{ number_format($tx->amount, 2, ',', '.') }}
                             </span>

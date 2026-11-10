@@ -295,6 +295,15 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 ## 7. Histórico de Alterações e Atualizações
 
+### [2026-11-10] - Responsividade 100% Mobile/Desktop (Tudo Visível no Celular)
+- **Página Inicial (`resources/views/welcome.blade.php`):**
+  - Exibição garantida no celular de todos os elementos do PC: widgets flutuantes 3D do cartão, marca ASBANK no cabeçalho, botão de simulação e barra de navegação móvel (`Simulador`, `Tecnologia PIX`, `Como Funciona`, `Segurança`).
+- **Gerenciador Administrativo (`resources/views/layouts/admin.blade.php` e views admin):**
+  - Cabeçalho responsivo com quebra elegante em telas pequenas, exibindo título, subtítulo e botões de ação ("Novo Empréstimo" e "Novo Cliente") sem cortes ou overflow horizontal.
+  - Ajustados resumos de extrato, cards de empréstimos, detalhes de contratos e dossiê de clientes com `break-all` para chaves PIX/E2E longas e tabelas com rolagem horizontal fluida.
+- **Portal do Cliente (`resources/views/layouts/client.blade.php` e `client/dashboard.blade.php`):**
+  - Nome do cliente e todos os links de navegação do PC visíveis também no cabeçalho móvel, além de cards adaptados para leitura vertical limpa.
+
 ### [2026-11-10] - Redesign Tecnológico da Home com Efeitos 3D, Parallax e Simulador Interativo
 - **Página Inicial (`resources/views/welcome.blade.php`):**
   - Redesign completo de alta tecnologia fintech com fundo de constelação de partículas interativas em HTML5 Canvas (`#bg-particles`) e grade tecnológica sutil.

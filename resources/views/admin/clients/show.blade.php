@@ -11,30 +11,30 @@
             <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar para lista de clientes
         </a>
 
-        <div class="flex items-center gap-3">
-            <a href="{{ route('admin.clients.edit', $client) }}" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs transition-colors flex items-center gap-1.5">
+        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <a href="{{ route('admin.clients.edit', $client) }}" class="flex-1 sm:flex-initial justify-center px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs transition-colors flex items-center gap-1.5 whitespace-nowrap">
                 <i data-lucide="pencil" class="w-4 h-4"></i> Editar Dados
             </a>
-            <a href="{{ route('admin.loans.create', ['client_id' => $client->id]) }}" class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-lg shadow-amber-900/20">
+            <a href="{{ route('admin.loans.create', ['client_id' => $client->id]) }}" class="flex-1 sm:flex-initial justify-center px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-lg shadow-amber-900/20 whitespace-nowrap">
                 <i data-lucide="plus-circle" class="w-4 h-4"></i> Cadastrar Empréstimo
             </a>
         </div>
     </div>
 
     <!-- Client Header Profile Card -->
-    <div class="p-6 rounded-2xl bg-[#0A1324] border border-[#162540] flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-        <div class="flex items-center gap-4">
-            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-sky-600 to-amber-500 flex items-center justify-center font-black text-white text-xl shadow-lg border border-sky-400/30">
+    <div class="p-5 sm:p-6 rounded-2xl bg-[#0A1324] border border-[#162540] flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div class="flex items-start sm:items-center gap-4 min-w-0">
+            <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-sky-600 to-amber-500 flex items-center justify-center font-black text-white text-lg sm:text-xl shadow-lg border border-sky-400/30 shrink-0">
                 {{ substr($client->name, 0, 2) }}
             </div>
-            <div>
-                <div class="flex items-center gap-2">
-                    <h1 class="text-xl font-bold text-white">{{ $client->name }}</h1>
+            <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                    <h1 class="text-lg sm:text-xl font-bold text-white break-words">{{ $client->name }}</h1>
                     <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold {{ $client->status === 'ativo' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-500/10 text-slate-400' }}">
                         {{ ucfirst($client->status) }}
                     </span>
                 </div>
-                <div class="flex flex-wrap items-center gap-3 text-xs text-slate-400 mt-1">
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 mt-1 break-all">
                     <span class="font-mono text-slate-300">CPF: {{ $client->formattedDocument() }}</span>
                     <span>•</span>
                     <span>{{ $client->email }}</span>
@@ -45,15 +45,15 @@
         </div>
 
         <!-- PIX Key Highlight Box -->
-        <div class="w-full md:w-auto p-4 rounded-xl bg-[#070D18] border border-amber-500/20 flex items-center gap-4">
-            <div class="p-3 rounded-xl bg-amber-500/10 text-amber-400">
+        <div class="w-full md:w-auto p-4 rounded-xl bg-[#070D18] border border-amber-500/20 flex items-center gap-4 min-w-0">
+            <div class="p-3 rounded-xl bg-amber-500/10 text-amber-400 shrink-0">
                 <i data-lucide="zap" class="w-6 h-6"></i>
             </div>
-            <div>
+            <div class="min-w-0 flex-1">
                 <p class="text-[11px] uppercase tracking-wider text-amber-400 font-bold">Chave PIX Cadastrada (MisticPay)</p>
                 <div class="flex items-center gap-2">
-                    <span class="font-mono text-sm font-bold text-white">{{ $client->pix_key }}</span>
-                    <button onclick="copyToClipboard('{{ $client->pix_key }}', 'Chave PIX copiada!')" class="text-slate-400 hover:text-white" title="Copiar Chave">
+                    <span class="font-mono text-sm font-bold text-white break-all">{{ $client->pix_key }}</span>
+                    <button onclick="copyToClipboard('{{ $client->pix_key }}', 'Chave PIX copiada!')" class="text-slate-400 hover:text-white shrink-0" title="Copiar Chave">
                         <i data-lucide="copy" class="w-4 h-4"></i>
                     </button>
                 </div>

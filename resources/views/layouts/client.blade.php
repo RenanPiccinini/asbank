@@ -13,8 +13,26 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <style>
+        .overflow-x-hidden { overflow-x: hidden; }
+        .pl-2 { padding-left: 0.5rem; }
+        .max-w-\[115px\] { max-width: 115px; }
+        @media (min-width: 640px) {
+            .sm\:gap-3 { gap: 0.75rem; }
+            .sm\:pl-3 { padding-left: 0.75rem; }
+            .sm\:max-w-none { max-width: none; }
+            .sm\:w-9 { width: 2.25rem; }
+            .sm\:h-9 { height: 2.25rem; }
+            .sm\:text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+            .sm\:text-xs { font-size: 0.75rem; line-height: 1rem; }
+        }
+        @media (min-width: 768px) {
+            .md\:text-right { text-align: right; }
+        }
+    </style>
 </head>
-<body class="font-sans antialiased bg-[#070D18] text-slate-100 min-h-screen flex flex-col">
+<body class="font-sans antialiased bg-[#070D18] text-slate-100 min-h-screen flex flex-col overflow-x-hidden">
 
     <!-- Top Navigation Bar for Client Portal -->
     <header class="bg-[#0A1324] border-b border-[#162540] sticky top-0 z-40">
@@ -51,12 +69,12 @@
                         </a>
                     @endif
 
-                    <div class="flex items-center gap-3 pl-3 border-l border-slate-800">
-                        <div class="text-right hidden sm:block">
-                            <div class="text-sm font-semibold text-white">{{ auth()->user()->name }}</div>
-                            <div class="text-xs text-sky-400">Cliente ASBANK</div>
+                    <div class="flex items-center gap-2.5 sm:gap-3 pl-2 sm:pl-3 border-l border-slate-800">
+                        <div class="text-right">
+                            <div class="text-xs sm:text-sm font-semibold text-white truncate max-w-[115px] sm:max-w-none">{{ auth()->user()->name }}</div>
+                            <div class="text-[10px] sm:text-xs text-sky-400">Cliente ASBANK</div>
                         </div>
-                        <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-sky-600 to-amber-500 flex items-center justify-center font-bold text-white text-sm shadow-md">
+                        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-tr from-sky-600 to-amber-500 flex items-center justify-center font-bold text-white text-xs sm:text-sm shadow-md shrink-0">
                             {{ substr(auth()->user()->name ?? 'C', 0, 2) }}
                         </div>
                         <form method="POST" action="{{ route('logout') }}">
@@ -69,13 +87,13 @@
                 </div>
             </div>
 
-            <!-- Mobile Submenu -->
-            <div class="flex md:hidden items-center justify-between py-2.5 border-t border-[#162540] text-xs font-medium text-slate-300">
-                <a href="{{ route('client.dashboard') }}" class="px-2 py-1 {{ request()->routeIs('client.dashboard') ? 'text-sky-400 font-bold' : '' }}">Início</a>
-                <a href="{{ route('client.loans.index') }}" class="px-2 py-1 {{ request()->routeIs('client.loans.*') ? 'text-sky-400 font-bold' : '' }}">Empréstimos</a>
-                <a href="{{ route('client.statement') }}" class="px-2 py-1 {{ request()->routeIs('client.statement') ? 'text-sky-400 font-bold' : '' }}">Extrato</a>
+            <!-- Mobile Submenu (todas as opções visíveis no celular) -->
+            <div class="flex md:hidden items-center gap-4 py-2.5 border-t border-[#162540] text-xs font-medium text-slate-300 overflow-x-auto whitespace-nowrap">
+                <a href="{{ route('client.dashboard') }}" class="py-1 {{ request()->routeIs('client.dashboard') ? 'text-sky-400 font-bold' : '' }}">Painel Principal</a>
+                <a href="{{ route('client.loans.index') }}" class="py-1 {{ request()->routeIs('client.loans.*') ? 'text-sky-400 font-bold' : '' }}">Meus Empréstimos & Contratos</a>
+                <a href="{{ route('client.statement') }}" class="py-1 {{ request()->routeIs('client.statement') ? 'text-sky-400 font-bold' : '' }}">Meu Extrato PIX</a>
                 @if(auth()->user()->isAdmin())
-                    <a href="{{ route('admin.dashboard') }}" class="px-2 py-1 text-amber-400">Admin</a>
+                    <a href="{{ route('admin.dashboard') }}" class="py-1 text-amber-400 font-semibold">Voltar ao Painel Admin</a>
                 @endif
             </div>
         </div>

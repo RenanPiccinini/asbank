@@ -278,39 +278,68 @@
         }
 
         .floating-widget-top {
-            display: none;
+            display: flex;
             position: absolute;
-            top: -26px;
-            right: -18px;
+            top: -18px;
+            right: 6px;
             z-index: 20;
             align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 1rem;
-            border-radius: 16px;
+            gap: 0.6rem;
+            padding: 0.55rem 0.85rem;
+            border-radius: 14px;
             border: 1px solid rgba(16, 185, 129, 0.45);
             animation: badgeFloatA 5.5s ease-in-out infinite;
             transform-style: preserve-3d;
         }
 
         .floating-widget-bottom {
-            display: none;
+            display: flex;
             position: absolute;
-            bottom: -24px;
-            left: -18px;
+            bottom: -18px;
+            left: 6px;
             z-index: 20;
             align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 1rem;
-            border-radius: 16px;
+            gap: 0.6rem;
+            padding: 0.55rem 0.85rem;
+            border-radius: 14px;
             border: 1px solid rgba(56, 189, 248, 0.45);
             animation: badgeFloatB 6.2s ease-in-out infinite;
             transform-style: preserve-3d;
         }
 
         @media (min-width: 640px) {
-            .floating-widget-top,
+            .floating-widget-top {
+                top: -26px;
+                right: -18px;
+                gap: 0.75rem;
+                padding: 0.75rem 1rem;
+                border-radius: 16px;
+            }
             .floating-widget-bottom {
-                display: flex;
+                bottom: -24px;
+                left: -18px;
+                gap: 0.75rem;
+                padding: 0.75rem 1rem;
+                border-radius: 16px;
+            }
+        }
+
+        /* Mobile Scroll Nav Strip */
+        .mobile-nav-strip {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 0.55rem 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        @media (min-width: 768px) {
+            .mobile-nav-strip {
+                display: none;
             }
         }
 
@@ -561,44 +590,54 @@
 
     <!-- Top Glassmorphic Navigation -->
     <header class="top-header">
-        <div class="site-container top-header-inner">
-            <a href="/" class="flex items-center gap-3 group" style="text-decoration:none;">
-                <img src="{{ asset('images/logo.jpg') }}" alt="ASBANK - Confiança que cresce" class="h-11 w-auto rounded-xl shadow-lg border border-sky-500/30">
-                <div class="hidden sm:block">
-                    <span class="font-black text-white tracking-tight text-lg block leading-none">ASBANK</span>
-                    <span class="text-[10px] text-sky-400 font-semibold uppercase tracking-widest">Digital Banking PIX</span>
-                </div>
-            </a>
+        <div class="site-container">
+            <div class="top-header-inner">
+                <a href="/" class="flex items-center gap-2.5 group" style="text-decoration:none;">
+                    <img src="{{ asset('images/logo.jpg') }}" alt="ASBANK - Confiança que cresce" class="h-9 sm:h-11 w-auto rounded-xl shadow-lg border border-sky-500/30">
+                    <div>
+                        <span class="font-black text-white tracking-tight text-sm sm:text-lg block leading-none">ASBANK</span>
+                        <span class="text-[9px] sm:text-[10px] text-sky-400 font-semibold uppercase tracking-wider">Digital Banking PIX</span>
+                    </div>
+                </a>
 
-            <nav class="nav-links">
+                <nav class="nav-links">
+                    <a href="#simulador" class="nav-link">Simulador</a>
+                    <a href="#tecnologia" class="nav-link">Tecnologia PIX</a>
+                    <a href="#como-funciona" class="nav-link">Como Funciona</a>
+                    <a href="#seguranca" class="nav-link">Segurança</a>
+                </nav>
+
+                <div class="flex items-center gap-2 sm:gap-3">
+                    @auth
+                        @if(auth()->user()->isAdmin())
+                            <a href="{{ route('admin.dashboard') }}" class="px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-[11px] sm:text-xs uppercase tracking-wider shadow-lg transition-all flex items-center gap-1.5">
+                                <i data-lucide="shield" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
+                                <span>Gerenciador Admin</span>
+                            </a>
+                        @else
+                            <a href="{{ route('client.dashboard') }}" class="px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-[11px] sm:text-xs uppercase tracking-wider shadow-lg transition-all flex items-center gap-1.5">
+                                <i data-lucide="user" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
+                                <span>Meu Painel</span>
+                            </a>
+                        @endif
+                    @else
+                        <a href="#simulador" class="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-slate-700 hover:border-amber-400 text-slate-200 hover:text-amber-300 font-semibold text-[11px] sm:text-xs transition-all">
+                            Simular
+                        </a>
+                        <a href="{{ route('login') }}" class="px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 text-white font-bold text-[11px] sm:text-xs uppercase tracking-wider shadow-lg transition-all flex items-center gap-1.5">
+                            <i data-lucide="log-in" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
+                            <span>Acessar</span>
+                        </a>
+                    @endauth
+                </div>
+            </div>
+
+            <!-- Mobile Navigation Strip (100% same links as PC) -->
+            <div class="mobile-nav-strip">
                 <a href="#simulador" class="nav-link">Simulador</a>
                 <a href="#tecnologia" class="nav-link">Tecnologia PIX</a>
                 <a href="#como-funciona" class="nav-link">Como Funciona</a>
                 <a href="#seguranca" class="nav-link">Segurança</a>
-            </nav>
-
-            <div class="flex items-center gap-3">
-                @auth
-                    @if(auth()->user()->isAdmin())
-                        <a href="{{ route('admin.dashboard') }}" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs uppercase tracking-wider shadow-lg transition-all flex items-center gap-1.5">
-                            <i data-lucide="shield" class="w-4 h-4"></i>
-                            <span>Gerenciador Admin</span>
-                        </a>
-                    @else
-                        <a href="{{ route('client.dashboard') }}" class="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg transition-all flex items-center gap-1.5">
-                            <i data-lucide="user" class="w-4 h-4"></i>
-                            <span>Meu Painel</span>
-                        </a>
-                    @endif
-                @else
-                    <a href="#simulador" class="hidden sm:inline-flex px-4 py-2.5 rounded-xl border border-slate-700 hover:border-amber-400 text-slate-200 hover:text-amber-300 font-semibold text-xs transition-all">
-                        Simular Agora
-                    </a>
-                    <a href="{{ route('login') }}" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-500 hover:to-blue-600 text-white font-bold text-xs uppercase tracking-wider shadow-lg transition-all flex items-center gap-2">
-                        <i data-lucide="log-in" class="w-4 h-4"></i>
-                        <span>Acessar Conta</span>
-                    </a>
-                @endauth
             </div>
         </div>
     </header>

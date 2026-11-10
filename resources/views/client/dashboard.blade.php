@@ -18,8 +18,8 @@
                 </p>
             </div>
 
-            <div class="flex items-center gap-4">
-                <div class="p-4 rounded-2xl bg-[#070D18]/90 border border-sky-500/30 text-right">
+            <div class="flex items-center gap-4 w-full md:w-auto">
+                <div class="w-full md:w-auto p-4 rounded-2xl bg-[#070D18]/90 border border-sky-500/30 text-left md:text-right">
                     <span class="text-xs text-slate-400 block">Seu Limite Aprovado</span>
                     <span class="text-xl font-black text-amber-400">R$ {{ number_format($client->credit_limit, 2, ',', '.') }}</span>
                 </div>
@@ -63,7 +63,7 @@
     <!-- Next Upcoming Installments with PIX Payment Button -->
     @if($upcomingInstallments->count() > 0)
     <div class="p-6 rounded-2xl bg-[#0A1324] border border-[#162540] shadow-xl">
-        <div class="flex items-center justify-between mb-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5">
             <div class="flex items-center gap-2.5">
                 <i data-lucide="qr-code" class="w-5 h-5 text-amber-400"></i>
                 <h2 class="text-base font-bold text-white">Próximas Parcelas para Pagamento via PIX</h2>

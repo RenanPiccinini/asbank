@@ -11,11 +11,11 @@
             <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar para lista de empréstimos
         </a>
 
-        <div class="flex items-center gap-3">
-            <a href="{{ route('admin.loans.contract-print', $loan) }}" target="_blank" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs transition-colors flex items-center gap-1.5 shadow">
+        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <a href="{{ route('admin.loans.contract-print', $loan) }}" target="_blank" class="flex-1 sm:flex-initial justify-center px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs transition-colors flex items-center gap-1.5 shadow whitespace-nowrap">
                 <i data-lucide="printer" class="w-4 h-4"></i> Imprimir Contrato
             </a>
-            <a href="{{ route('admin.loans.edit', $loan) }}" class="px-4 py-2 rounded-xl bg-sky-600/20 text-sky-300 border border-sky-500/30 hover:bg-sky-600/30 font-semibold text-xs transition-colors flex items-center gap-1.5">
+            <a href="{{ route('admin.loans.edit', $loan) }}" class="flex-1 sm:flex-initial justify-center px-4 py-2 rounded-xl bg-sky-600/20 text-sky-300 border border-sky-500/30 hover:bg-sky-600/30 font-semibold text-xs transition-colors flex items-center gap-1.5 whitespace-nowrap">
                 <i data-lucide="pencil" class="w-4 h-4"></i> Editar Contrato
             </a>
         </div>
@@ -26,19 +26,19 @@
         $statusBadge = $loan->statusBadge();
         $disbBadge = $loan->disbursementBadge();
     @endphp
-    <div class="p-6 rounded-2xl bg-[#0A1324] border border-[#162540] flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 shadow-xl">
-        <div class="flex items-center gap-4">
-            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-600 to-amber-500 flex items-center justify-center font-black text-white text-lg shadow-lg">
-                <i data-lucide="file-text" class="w-7 h-7"></i>
+    <div class="p-5 sm:p-6 rounded-2xl bg-[#0A1324] border border-[#162540] flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 shadow-xl">
+        <div class="flex items-start sm:items-center gap-4 min-w-0">
+            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-sky-600 to-amber-500 flex items-center justify-center font-black text-white text-lg shadow-lg shrink-0">
+                <i data-lucide="file-text" class="w-6 h-6 sm:w-7 sm:h-7"></i>
             </div>
-            <div>
-                <div class="flex items-center gap-2">
-                    <h1 class="text-xl font-black text-white font-mono">{{ $loan->contract_number }}</h1>
+            <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                    <h1 class="text-lg sm:text-xl font-black text-white font-mono">{{ $loan->contract_number }}</h1>
                     <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold border {{ $statusBadge['class'] }}">
                         {{ $statusBadge['label'] }}
                     </span>
                 </div>
-                <div class="flex flex-wrap items-center gap-3 text-xs text-slate-400 mt-1">
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 mt-1">
                     <span>Mutuário: <a href="{{ route('admin.clients.show', $loan->client) }}" class="font-bold text-sky-400 hover:underline">{{ $loan->client->name }}</a></span>
                     <span>•</span>
                     <span class="font-mono">CPF: {{ $loan->client->formattedDocument() }}</span>
@@ -48,18 +48,18 @@
             </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-4">
-            <div class="p-4 rounded-xl bg-[#070D18] border border-[#162540] text-right">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full lg:w-auto">
+            <div class="p-4 rounded-xl bg-[#070D18] border border-[#162540] text-left sm:text-right">
                 <span class="text-xs text-slate-400">Valor Solicitado</span>
                 <div class="text-xl font-black text-white">R$ {{ number_format($loan->amount, 2, ',', '.') }}</div>
             </div>
-            <div class="p-4 rounded-xl bg-[#070D18] border border-[#162540] text-right">
+            <div class="p-4 rounded-xl bg-[#070D18] border border-[#162540] text-left sm:text-right">
                 <span class="text-xs text-slate-400">Total c/ Juros ({{ $loan->interest_rate }}% a.m.)</span>
                 <div class="text-xl font-black text-sky-400">R$ {{ number_format($loan->total_amount, 2, ',', '.') }}</div>
             </div>
-            <div class="p-4 rounded-xl bg-[#070D18] border border-amber-500/20 text-right">
+            <div class="p-4 rounded-xl bg-[#070D18] border border-amber-500/20 text-left sm:text-right">
                 <span class="text-xs text-slate-400">Score de Crédito</span>
-                <div class="text-xl font-black text-amber-400 flex items-center justify-end gap-1">
+                <div class="text-xl font-black text-amber-400 flex items-center justify-start sm:justify-end gap-1">
                     <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i> {{ $loan->credit_score }}
                 </div>
             </div>
@@ -67,14 +67,14 @@
     </div>
 
     <!-- DISBURSEMENT BOX: Envio do PIX (Cash-Out MisticPay) -->
-    <div class="p-6 rounded-2xl bg-[#0A1324] border {{ $loan->disbursement_status === 'enviado' ? 'border-emerald-500/30' : 'border-amber-500/30' }} shadow-xl">
+    <div class="p-5 sm:p-6 rounded-2xl bg-[#0A1324] border {{ $loan->disbursement_status === 'enviado' ? 'border-emerald-500/30' : 'border-amber-500/30' }} shadow-xl">
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-            <div class="flex items-start gap-4">
-                <div class="p-3.5 rounded-2xl {{ $loan->disbursement_status === 'enviado' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400' }}">
-                    <i data-lucide="zap" class="w-7 h-7"></i>
+            <div class="flex items-start gap-4 min-w-0 w-full md:w-auto">
+                <div class="p-3 sm:p-3.5 rounded-2xl {{ $loan->disbursement_status === 'enviado' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400' }} shrink-0">
+                    <i data-lucide="zap" class="w-6 h-6 sm:w-7 sm:h-7"></i>
                 </div>
-                <div>
-                    <div class="flex items-center gap-2">
+                <div class="min-w-0 flex-1">
+                    <div class="flex flex-wrap items-center gap-2">
                         <h2 class="text-base font-bold text-white">Desembolso Financeiro via PIX (MisticPay Cash-Out)</h2>
                         <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold border {{ $disbBadge['class'] }}">
                             {{ $disbBadge['label'] }}
@@ -82,10 +82,10 @@
                     </div>
 
                     @if($loan->disbursement_status === 'enviado')
-                        <p class="text-xs text-emerald-400/90 mt-1">
-                            PIX de <strong>R$ {{ number_format($loan->amount, 2, ',', '.') }}</strong> enviado para a chave <strong class="font-mono text-white">{{ $loan->pix_key }}</strong> em {{ $loan->disbursed_at?->format('d/m/Y H:i') }}.
+                        <p class="text-xs text-emerald-400/90 mt-1 break-words">
+                            PIX de <strong>R$ {{ number_format($loan->amount, 2, ',', '.') }}</strong> enviado para a chave <strong class="font-mono text-white break-all">{{ $loan->pix_key }}</strong> em {{ $loan->disbursed_at?->format('d/m/Y H:i') }}.
                         </p>
-                        <div class="flex flex-wrap items-center gap-3 text-[11px] text-slate-400 mt-2 font-mono">
+                        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-400 mt-2 font-mono break-all">
                             <span>ID MisticPay: <span class="text-slate-200">{{ $loan->disbursement_transaction_id }}</span></span>
                             <span>•</span>
                             <span>End-to-End: <span class="text-slate-200">{{ $loan->disbursement_e2e }}</span></span>
@@ -94,7 +94,7 @@
                         <p class="text-xs text-amber-300 mt-1">
                             Solicitação de PIX de <strong>R$ {{ number_format($loan->amount, 2, ',', '.') }}</strong> enviada para a fila da MisticPay. Aguardando conclusão automática...
                         </p>
-                        <div class="flex flex-wrap items-center gap-3 text-[11px] text-slate-400 mt-2 font-mono">
+                        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-400 mt-2 font-mono break-all">
                             <span>ID MisticPay: <span class="text-slate-200">{{ $loan->disbursement_transaction_id }}</span></span>
                             <span>•</span>
                             <span>Destino: <span class="text-amber-300">{{ $loan->pix_key }}</span></span>
@@ -103,7 +103,7 @@
                         <p class="text-xs text-slate-400 mt-1">
                             Os fundos de <strong>R$ {{ number_format($loan->amount, 2, ',', '.') }}</strong> serão transferidos instantaneamente para a conta do cliente via API MisticPay.
                         </p>
-                        <div class="flex items-center gap-2 mt-2 text-xs text-amber-300 font-mono">
+                        <div class="flex flex-wrap items-center gap-2 mt-2 text-xs text-amber-300 font-mono break-all">
                             <span>Destino: {{ strtoupper($loan->pix_key_type ?: $loan->client->pix_key_type) }} <strong>{{ $loan->pix_key ?: $loan->client->pix_key }}</strong> ({{ $loan->client->bank_name ?: 'Conta Titular' }})</span>
                         </div>
                     @endif
@@ -111,16 +111,16 @@
             </div>
 
             <!-- Action Button for PIX Cash-Out -->
-            <div>
+            <div class="w-full md:w-auto shrink-0">
                 @if($loan->disbursement_status === 'enviado')
-                    <div class="px-4 py-2 rounded-xl bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 text-xs font-bold flex items-center gap-2">
+                    <div class="w-full md:w-auto justify-center px-4 py-2.5 rounded-xl bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 text-xs font-bold flex items-center gap-2">
                         <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
                         <span>Transferência Liquidada</span>
                     </div>
                 @elseif($loan->disbursement_status === 'processando')
-                    <form method="POST" action="{{ route('admin.loans.sync-pix', $loan) }}">
+                    <form method="POST" action="{{ route('admin.loans.sync-pix', $loan) }}" class="w-full md:w-auto">
                         @csrf
-                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2">
+                        <button type="submit" class="w-full md:w-auto justify-center px-5 py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2">
                             <i data-lucide="refresh-cw" class="w-4 h-4 animate-spin"></i>
                             <span>Atualizar Status MisticPay</span>
                         </button>
@@ -129,9 +129,9 @@
                     @php
                         $confirmMsg = "Confirma a liberação imediata de R$ " . number_format($loan->amount, 2, ',', '.') . " para a chave de {$loan->client->name}? O valor sairá do saldo MisticPay.";
                     @endphp
-                    <form method="POST" action="{{ route('admin.loans.send-pix', $loan) }}" onsubmit="return confirmAction(event, 'Disparar PIX via MisticPay', {{ Js::from($confirmMsg) }}, 'zap', 'amber');">
+                    <form method="POST" action="{{ route('admin.loans.send-pix', $loan) }}" onsubmit="return confirmAction(event, 'Disparar PIX via MisticPay', {{ Js::from($confirmMsg) }}, 'zap', 'amber');" class="w-full md:w-auto">
                         @csrf
-                        <button type="submit" class="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-sm uppercase tracking-wider shadow-lg shadow-amber-900/30 transition-all flex items-center gap-2">
+                        <button type="submit" class="w-full md:w-auto justify-center px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-sm uppercase tracking-wider shadow-lg shadow-amber-900/30 transition-all flex items-center gap-2">
                             <i data-lucide="send" class="w-4 h-4"></i>
                             <span>Enviar PIX Agora</span>
                         </button>
@@ -196,28 +196,28 @@
                                 <div class="text-[10px] text-slate-400 mt-1">Pago em {{ $inst->paid_at->format('d/m/Y') }}</div>
                             @endif
                         </td>
-                        <td class="px-6 py-4">
+                        <td class="px-6 py-4 whitespace-nowrap">
                             @if($inst->status === 'pago')
                                 <span class="text-xs text-emerald-400 flex items-center gap-1 font-medium">
                                     <i data-lucide="check" class="w-3.5 h-3.5"></i> Quitado via PIX
                                 </span>
                             @elseif($inst->pix_qr_code)
                                 <button type="button" onclick="openPixModal('{{ $inst->installment_number }}', '{{ number_format($inst->amount, 2, ',', '.') }}', '{{ $inst->pix_qr_code }}', '{{ $inst->pix_qr_code_base64 }}')" 
-                                        class="px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-300 border border-sky-500/30 hover:bg-sky-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors">
+                                        class="px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-300 border border-sky-500/30 hover:bg-sky-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors whitespace-nowrap">
                                     <i data-lucide="qr-code" class="w-3.5 h-3.5 text-sky-400"></i>
                                     <span>Ver QR Code PIX</span>
                                 </button>
                             @else
                                 <form method="POST" action="{{ route('admin.loans.generate-installment-pix', $inst) }}">
                                     @csrf
-                                    <button type="submit" class="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors">
+                                    <button type="submit" class="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors whitespace-nowrap">
                                         <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-400"></i>
                                         <span>Gerar PIX MisticPay</span>
                                     </button>
                                 </form>
                             @endif
                         </td>
-                        <td class="px-6 py-4 text-right">
+                        <td class="px-6 py-4 text-right whitespace-nowrap">
                             <div class="flex items-center justify-end gap-2">
                                 @if($inst->status !== 'pago')
                                     <form method="POST" action="{{ route('admin.loans.mark-installment-paid', $inst) }}" onsubmit='return confirmAction(event, "Baixa Manual de Parcela", "Confirmar a baixa de pagamento da parcela #{{ $inst->installment_number }} no valor de R$ {{ number_format($inst->amount, 2, ',', '.') }}?", "check-circle-2", "emerald");'>
