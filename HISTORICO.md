@@ -299,6 +299,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 - **Asset Adicionado:** Logo oficial salva em `public/images/pds-logo.png`.
 - **Rodapés Atualizados (`welcome.blade.php`, `layouts/admin.blade.php`, `layouts/client.blade.php`, `layouts/guest.blade.php`):**
   - Adicionado texto *"Desenvolvido por"* com a logo da **Piccinini Digital Solutions** e link direto para `https://piccininidigitalsolutions.com.br/` (abrindo em nova aba com `target="_blank" rel="noopener noreferrer"`).
+  - Distribuição equilibrada em 3 blocos no desktop (`Copyright` à esquerda, `Status PIX / Gateway` ao centro e `Desenvolvido por` à direita).
 - **Testes:** `test_landing_page_is_accessible` atualizado para validar presença do crédito e link no rodapé (`40 testes, 121 asserções` aprovados).
 
 ### [2026-11-10] - Responsividade 100% Mobile/Desktop (Tudo Visível no Celular)

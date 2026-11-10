@@ -219,22 +219,20 @@
         </main>
 
         <!-- Footer -->
-        <footer class="px-4 sm:px-6 py-4 border-t border-[#162540] text-center text-xs text-slate-500 flex flex-col md:flex-row items-center justify-between gap-4">
+        <footer class="px-4 sm:px-6 py-4 border-t border-[#162540] text-center text-xs text-slate-500 flex flex-col lg:flex-row items-center justify-between gap-4">
             <span>© {{ date('Y') }} ASBANK • Confiança que cresce. Todos os direitos reservados.</span>
 
-            <div class="flex flex-col sm:flex-row items-center gap-4">
-                <span class="flex items-center gap-2 text-slate-400">
-                    <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span> Gateway MisticPay Conectado
-                </span>
+            <span class="flex items-center gap-2 text-slate-400">
+                <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span> Gateway MisticPay Conectado
+            </span>
 
-                <div class="flex items-center gap-2.5 text-slate-400">
-                    <span class="text-xs font-medium">Desenvolvido por</span>
-                    <a href="https://piccininidigitalsolutions.com.br/" target="_blank" rel="noopener noreferrer"
-                       title="Piccinini Digital Solutions"
-                       class="inline-flex items-center bg-white rounded-xl p-1.5 shadow-md border border-sky-500/30 hover:border-sky-400 transition-all">
-                        <img src="{{ asset('images/pds-logo.png') }}" alt="Piccinini Digital Solutions" class="h-9 w-auto object-contain rounded-lg">
-                    </a>
-                </div>
+            <div class="flex items-center gap-2.5 text-slate-400">
+                <span class="text-xs font-medium">Desenvolvido por</span>
+                <a href="https://piccininidigitalsolutions.com.br/" target="_blank" rel="noopener noreferrer"
+                   title="Piccinini Digital Solutions"
+                   class="inline-flex items-center bg-white rounded-xl p-1.5 shadow-md border border-sky-500/30 hover:border-sky-400 transition-all">
+                    <img src="{{ asset('images/pds-logo.png') }}" alt="Piccinini Digital Solutions" class="h-9 w-auto object-contain rounded-lg">
+                </a>
             </div>
         </footer>
     </div>
